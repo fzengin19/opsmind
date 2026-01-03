@@ -85,7 +85,6 @@ class TaskFactory extends Factory
     {
         return $this->state(fn () => [
             'assignee_id' => $user->id,
-            'company_id' => $user->company_id,
         ]);
     }
 }

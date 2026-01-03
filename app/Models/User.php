@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CompanyRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -22,11 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'company_id',
-        'department_id',
         'avatar',
         'phone',
-        'job_title',
         'timezone',
         'google_id',
     ];
@@ -46,15 +43,77 @@ class User extends Authenticatable
         ];
     }
 
-    public function company(): BelongsTo
+    // ==========================================
+    // Company Relationships (Pivot)
+    // ==========================================
+
+    public function companies(): BelongsToMany
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsToMany(Company::class, 'company_user')
+            ->withPivot('role', 'department_id', 'job_title', 'joined_at')
+            ->withTimestamps();
     }
 
-    public function department(): BelongsTo
+    /**
+     * Get user's current/default company.
+     * MVP: User has only one company.
+     */
+    public function currentCompany(): ?Company
     {
-        return $this->belongsTo(Department::class);
+        return $this->companies()->first();
     }
+
+    /**
+     * Check if user belongs to any company.
+     */
+    public function hasCompany(): bool
+    {
+        return $this->companies()->exists();
+    }
+
+    /**
+     * Get user's role in a specific company.
+     */
+    public function roleIn(Company $company): ?CompanyRole
+    {
+        $pivot = $this->companies()->where('company_id', $company->id)->first()?->pivot;
+
+        return $pivot ? CompanyRole::from($pivot->role) : null;
+    }
+
+    /**
+     * Check if user is owner of a company.
+     */
+    public function isOwnerOf(Company $company): bool
+    {
+        return $this->roleIn($company) === CompanyRole::Owner;
+    }
+
+    /**
+     * Get user's department in current company.
+     */
+    public function currentDepartment(): ?Department
+    {
+        $pivot = $this->companies()->first()?->pivot;
+
+        if (! $pivot || ! $pivot->department_id) {
+            return null;
+        }
+
+        return Department::find($pivot->department_id);
+    }
+
+    /**
+     * Get user's job title in current company.
+     */
+    public function currentJobTitle(): ?string
+    {
+        return $this->companies()->first()?->pivot?->job_title;
+    }
+
+    // ==========================================
+    // Other Relationships
+    // ==========================================
 
     public function contacts(): HasMany
     {
@@ -87,6 +146,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(TaskComment::class);
     }
+
+    // ==========================================
+    // Helpers
+    // ==========================================
 
     public function initials(): string
     {

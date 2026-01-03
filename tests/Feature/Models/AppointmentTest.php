@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\AppointmentType;
+use App\Enums\CompanyRole;
 use App\Models\Appointment;
 use App\Models\AppointmentAttendee;
 use App\Models\Company;
@@ -13,13 +14,16 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 describe('Appointment Model', function () {
-    it('can be created with factory', function () {
-        $company = Company::factory()->create();
-        $user = User::factory()->create(['company_id' => $company->id]);
+    beforeEach(function () {
+        $this->company = Company::factory()->create();
+        $this->user = User::factory()->create();
+        $this->company->addUser($this->user, CompanyRole::Owner);
+    });
 
+    it('can be created with factory', function () {
         $appointment = Appointment::factory()->create([
-            'company_id' => $company->id,
-            'created_by' => $user->id,
+            'company_id' => $this->company->id,
+            'created_by' => $this->user->id,
         ]);
 
         expect($appointment)
@@ -29,12 +33,9 @@ describe('Appointment Model', function () {
     });
 
     it('casts type to AppointmentType enum', function () {
-        $company = Company::factory()->create();
-        $user = User::factory()->create(['company_id' => $company->id]);
-
         $appointment = Appointment::factory()->meeting()->create([
-            'company_id' => $company->id,
-            'created_by' => $user->id,
+            'company_id' => $this->company->id,
+            'created_by' => $this->user->id,
         ]);
 
         expect($appointment->type)
@@ -43,12 +44,9 @@ describe('Appointment Model', function () {
     });
 
     it('casts start_at and end_at to Carbon', function () {
-        $company = Company::factory()->create();
-        $user = User::factory()->create(['company_id' => $company->id]);
-
         $appointment = Appointment::factory()->create([
-            'company_id' => $company->id,
-            'created_by' => $user->id,
+            'company_id' => $this->company->id,
+            'created_by' => $this->user->id,
         ]);
 
         expect($appointment->start_at)->toBeInstanceOf(Carbon::class);
@@ -56,29 +54,23 @@ describe('Appointment Model', function () {
     });
 
     it('casts all_day to boolean', function () {
-        $company = Company::factory()->create();
-        $user = User::factory()->create(['company_id' => $company->id]);
-
         $appointment = Appointment::factory()->allDay()->create([
-            'company_id' => $company->id,
-            'created_by' => $user->id,
+            'company_id' => $this->company->id,
+            'created_by' => $this->user->id,
         ]);
 
         expect($appointment->all_day)->toBeTrue();
     });
 
     it('has attendees relationship', function () {
-        $company = Company::factory()->create();
-        $user = User::factory()->create(['company_id' => $company->id]);
-
         $appointment = Appointment::factory()->create([
-            'company_id' => $company->id,
-            'created_by' => $user->id,
+            'company_id' => $this->company->id,
+            'created_by' => $this->user->id,
         ]);
 
         AppointmentAttendee::create([
             'appointment_id' => $appointment->id,
-            'user_id' => $user->id,
+            'user_id' => $this->user->id,
             'status' => 'pending',
         ]);
 

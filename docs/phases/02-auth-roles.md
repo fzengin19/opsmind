@@ -1,142 +1,155 @@
 # Faz 2: Authentication & Role Management
 
 **Süre:** 4 gün  
-**Önkoşul:** Faz 1 (Database & Models)  
-**Çıktı:** Güvenli giriş sistemi ve rol tabanlı yetkilendirme
+**Önkoşul:** Faz 1 (Database & Models) ✅  
+**Çıktı:** Güvenli giriş sistemi, firma oluşturma, davet sistemi
 
 ---
 
 ## Amaç
 
-Laravel built-in auth kullanarak email/password ve Google OAuth ile giriş, şirket bazlı kullanıcı yönetimi ve Spatie Permission ile rol tabanlı yetkilendirme.
+Fortify ile email/password ve Google OAuth girişi, onboarding ile firma oluşturma, davet sistemi ile takım üyesi ekleme.
+
+---
+
+## Mimari Önemli Notlar
+
+### 🚨 Pivot Tablo Kullanımı
+
+> User-Company ilişkisi `company_user` pivot tablosu ile yönetilir.  
+> `users.company_id` **YOKTUR**.
+
+```php
+// ❌ YANLIŞ (eski plan)
+$user->company_id = $company->id;
+
+// ✅ DOĞRU (yeni plan)
+$company->addUser($user, CompanyRole::Owner);
+```
+
+### Helper Metodlar
+
+```php
+$user->hasCompany()           // Şirketi var mı?
+$user->currentCompany()       // İlk/aktif şirket
+$user->roleIn($company)       // Şirketteki rolü (CompanyRole enum)
+$user->isOwnerOf($company)    // Sahip mi?
+
+$company->addUser($user, $role, $departmentId, $jobTitle)
+$company->removeUser($user)
+$company->owners()            // Owner rolündeki kullanıcılar
+$company->admins()            // Owner + Admin
+```
 
 ---
 
 ## Görevler
 
-### 2.1 Mevcut Auth Kontrolü
+### 2.1 Mevcut Auth Kontrolü ✅
 
-> Projede Laravel built-in auth mevcut. Fortify veya Breeze yerine bunu kullanacağız.
+> Fortify zaten kurulu. Login, Register, Password Reset, 2FA çalışıyor.
 
-- [ ] Mevcut auth yapısını incele
-- [ ] `routes/auth.php` kontrol et
-- [ ] Login/Register view'larını tespit et
+- [x] Fortify yapısı mevcut
+- [x] Livewire auth views (Flux UI) mevcut
+- [x] Rate limiting yapılandırılmış
 
-### 2.2 Google OAuth (Socialite)
+### 2.2 Onboarding Sistemi (YENİ)
 
-- [ ] Kurulum:
-  ```bash
-  composer require laravel/socialite
+> Register'da firma sorulmaz. Login sonrası şirketsiz kullanıcılar onboarding'e yönlendirilir.
+
+**Akış:**
+```
+Register → email/password/name (firma YOK) →
+Login → hasCompany()=false → /onboarding/create-company →
+Firma adı gir → company_user pivot (owner) → /dashboard
+```
+
+- [ ] `EnsureHasCompany` middleware
+- [ ] `/onboarding/create-company` Volt sayfası
+- [ ] `CreateCompanyAction`:
+  ```php
+  class CreateCompanyAction
+  {
+      public function execute(User $user, string $name): Company
+      {
+          $company = Company::create([
+              'name' => $name,
+              'slug' => Str::slug($name),
+          ]);
+          
+          $company->addUser($user, CompanyRole::Owner);
+          
+          return $company;
+      }
+  }
   ```
 
-- [ ] Google Cloud Console:
-  - Project oluştur
-  - OAuth 2.0 credentials
-  - Authorized redirect URI: `http://localhost/auth/google/callback`
+### 2.3 Google OAuth (Socialite)
 
+- [ ] `composer require laravel/socialite`
+- [ ] `config/services.php` güncelle
 - [ ] `.env` güncelle:
   ```env
   GOOGLE_CLIENT_ID=xxx
   GOOGLE_CLIENT_SECRET=xxx
   GOOGLE_REDIRECT_URI=http://localhost/auth/google/callback
   ```
-
-- [ ] `config/services.php` güncelle
-- [ ] `SocialiteController` oluştur:
+- [ ] `SocialiteController`:
   ```php
-  // Actions/Auth/HandleGoogleCallbackAction.php
-  class HandleGoogleCallbackAction
+  public function callback(): RedirectResponse
   {
-      public function execute(): User
-      {
-          $googleUser = Socialite::driver('google')->user();
-          
-          return User::firstOrCreate(
-              ['email' => $googleUser->email],
-              [
-                  'name' => $googleUser->name,
-                  'google_id' => $googleUser->id,
-                  'avatar' => $googleUser->avatar,
-              ]
-          );
-      }
-  }
-  ```
-
-### 2.3 Spatie Permission Konfigürasyonu
-
-> Faz 1'de kurulum yapıldı. Şimdi rolleri tanımlayacağız.
-
-- [ ] `RoleSeeder` güncelle:
-  ```php
-  Role::create(['name' => 'admin']);
-  Role::create(['name' => 'manager']);
-  Role::create(['name' => 'staff']);
-  ```
-
-| Rol | Yetkiler |
-|-----|----------|
-| **admin** | Tüm yetkiler, şirket ayarları, kullanıcı yönetimi, silme |
-| **manager** | Tüm CRUD, takım görünürlüğü, atama yapabilir |
-| **staff** | Sadece kendi kaynakları, atanan görevler |
-
-### 2.4 Kayıt Akışı (Company + User)
-
-- [ ] `RegisterUserData` DTO:
-  ```php
-  class RegisterUserData extends Data implements Wireable
-  {
-      use WireableData;
+      $googleUser = Socialite::driver('google')->user();
       
-      public function __construct(
-          #[Required, Max(100)]
-          public string $name,
-          #[Required, Email]
-          public string $email,
-          #[Required, Min(8)]
-          public string $password,
-          #[Required, Max(100)]
-          public string $company_name,
-      ) {}
-  }
-  ```
-
-- [ ] `CreateCompanyWithAdminAction`:
-  ```php
-  class CreateCompanyWithAdminAction
-  {
-      public function execute(RegisterUserData $data): User
-      {
-          return DB::transaction(function () use ($data) {
-              $company = Company::create([
-                  'name' => $data->company_name,
-                  'slug' => Str::slug($data->company_name),
-              ]);
-              
-              $user = User::create([
-                  'name' => $data->name,
-                  'email' => $data->email,
-                  'password' => Hash::make($data->password),
-                  'company_id' => $company->id,
-              ]);
-              
-              $user->assignRole('admin');
-              
-              return $user;
-          });
+      $user = User::firstOrCreate(
+          ['email' => $googleUser->email],
+          [
+              'name' => $googleUser->name,
+              'google_id' => $googleUser->id,
+              'avatar' => $googleUser->avatar,
+              'email_verified_at' => now(),
+          ]
+      );
+      
+      Auth::login($user);
+      
+      // Şirketi yoksa onboarding'e
+      if (!$user->hasCompany()) {
+          return redirect('/onboarding/create-company');
       }
+      
+      return redirect('/dashboard');
   }
   ```
+- [ ] Login sayfasına Google butonu ekle
 
-### 2.5 Kullanıcı Davet Sistemi
+### 2.4 Kullanıcı Davet Sistemi
+
+**Akış:**
+```
+Admin /team'de email + role girer → Invitation oluşur →
+Email gider (token) → /invitation/{token} →
+Kayıtlı: Login et + accept → Yeni: Register + accept →
+company_user pivot'a ekle → /dashboard
+```
 
 - [ ] `invitations` migration:
-  ```
-  id, company_id, email, role, token, expires_at, accepted_at, timestamps
+  ```php
+  Schema::create('invitations', function (Blueprint $table) {
+      $table->id();
+      $table->foreignId('company_id')->constrained()->cascadeOnDelete();
+      $table->string('email');
+      $table->string('role', 20); // CompanyRole enum value
+      $table->string('token', 64)->unique();
+      $table->timestamp('expires_at');
+      $table->timestamp('accepted_at')->nullable();
+      $table->foreignId('invited_by')->constrained('users');
+      $table->timestamps();
+      
+      $table->unique(['company_id', 'email']);
+  });
   ```
 
 - [ ] `Invitation` model
-
 - [ ] `InvitationData` DTO:
   ```php
   class InvitationData extends Data
@@ -144,96 +157,94 @@ Laravel built-in auth kullanarak email/password ve Google OAuth ile giriş, şir
       public function __construct(
           #[Required, Email]
           public string $email,
-          #[Required, In(['manager', 'staff'])]
-          public string $role,
+          #[Required]
+          public CompanyRole $role,
       ) {}
   }
   ```
 
 - [ ] `SendInvitationAction`
-- [ ] `AcceptInvitationAction`
-- [ ] `InviteUserNotification` (Markdown email)
-
-### 2.6 Middleware
-
-- [ ] `EnsureCompanyAccess` middleware:
+- [ ] `AcceptInvitationAction`:
   ```php
-  class EnsureCompanyAccess
+  class AcceptInvitationAction
+  {
+      public function execute(Invitation $invitation, User $user): void
+      {
+          $invitation->company->addUser(
+              $user,
+              CompanyRole::from($invitation->role)
+          );
+          
+          $invitation->update(['accepted_at' => now()]);
+      }
+  }
+  ```
+
+- [ ] `InviteUserNotification` (Markdown email)
+- [ ] `/invitation/{token}` sayfası
+
+### 2.5 Middleware
+
+- [ ] `EnsureHasCompany`:
+  ```php
+  class EnsureHasCompany
   {
       public function handle(Request $request, Closure $next): Response
       {
-          // User'ın company_id'si ile resource company_id eşleşmeli
-          // Global scope olarak da eklenebilir
+          if (auth()->check() && !auth()->user()->hasCompany()) {
+              return redirect('/onboarding/create-company');
+          }
+          
+          return $next($request);
       }
   }
   ```
 
 - [ ] `bootstrap/app.php` middleware kaydı
-- [ ] Route gruplarına uygula
+- [ ] Dashboard ve diğer authenticated route'lara uygula
 
-### 2.7 Auth Sayfaları (Livewire Volt + Flux UI)
+### 2.6 Takım Yönetimi Sayfası
 
-**Tüm auth sayfaları Class-based Volt component olacak.**
+- [ ] `/team` Volt sayfası:
+  - Kullanıcı listesi (`$company->users()`)
+  - Davet modal (email + role)
+  - Rol değiştirme (pivot update)
+  - Üye çıkarma (`removeUser()`)
+  - Pending davetler listesi
 
-- [ ] `resources/views/livewire/auth/login.blade.php`:
-  ```php
-  new class extends Component {
-      public string $email = '';
-      public string $password = '';
-      public bool $remember = false;
-      
-      public function login(): void
-      {
-          // Auth::attempt...
-      }
-  }
-  ```
-  - Email/password form (Flux input)
-  - Google ile giriş butonu
-  - Şifremi unuttum linki
-  - Remember me checkbox
+- [ ] Yetki kontrolü: Sadece Owner/Admin erişebilir
 
-- [ ] `resources/views/livewire/auth/register.blade.php`:
-  - Name, Email, Password, Company Name
-  - `CreateCompanyWithAdminAction` kullan
+---
 
-- [ ] `resources/views/livewire/auth/forgot-password.blade.php`
-- [ ] `resources/views/livewire/auth/reset-password.blade.php`
-- [ ] `resources/views/livewire/auth/verify-email.blade.php`
+## Edge Cases
 
-### 2.8 Takım Yönetimi Sayfası (Class-based Volt)
-
-- [ ] `resources/views/livewire/team/index.blade.php`:
-  - Kullanıcı listesi (Flux table)
-  - Davet gönder modal (Flux modal)
-  - Rol değiştirme (Flux select)
-  - Kullanıcı silme (soft delete)
-  - Sadece admin erişebilir
+| # | Durum | Çözüm |
+|---|-------|-------|
+| E1 | User zaten firmada, 2. firma açmak istiyor | MVP: HAYIR, hata ver |
+| E2 | Admin, başka firmadaki user'ı davet ediyor | MVP: HAYIR, hata ver |
+| E3 | Pending davet varken user login | Dashboard'da banner göster |
+| E4 | Süresi dolmuş davet | Hata + "Yeni davet isteyin" |
+| E5 | Zaten kabul edilmiş davet | Login'e yönlendir |
+| E6 | Aynı email'e 2. davet | Eski iptal, yeni oluştur |
+| E7 | Owner kendini çıkarmak ister | İzin verme (en az 1 owner) |
+| E8 | Google OAuth email = pending invitation | Otomatik kabul et |
 
 ---
 
 ## Doğrulama
 
 ```bash
-# Testler
 php artisan test --filter=Auth
 php artisan test --filter=Team
-
-# Tinker kontrol
-php artisan tinker
->>> User::first()->hasRole('admin')
->>> User::first()->company
+php artisan test --filter=Invitation
 ```
 
-Manuel test:
-1. Email ile kayıt ol → Şirket + Admin user oluşsun
-2. Dashboard'a yönlen
-3. Çıkış yap → Google ile giriş
-4. Admin olarak Takım sayfasına git
-5. Yeni kullanıcı davet et (manager rolü)
-6. Davet maili gelsin
-7. Davet linkine tıkla → Kayıt ol → Aynı şirkete eklen
-8. Staff kullanıcı takım sayfasına erişemesin
+### Manuel Test:
+1. Email ile kayıt → Onboarding → Firma oluştur → Dashboard
+2. Google ile kayıt → Onboarding → Firma oluştur → Dashboard
+3. Admin olarak Team → Davet gönder
+4. Davet linki → Kayıt ol → Aynı firmaya katıl
+5. Member olarak Team sayfasına erişim dene → Yasak
 
 ---
 
@@ -243,48 +254,40 @@ Manuel test:
 app/
 ├── Actions/
 │   └── Auth/
-│       ├── CreateCompanyWithAdminAction.php
-│       ├── HandleGoogleCallbackAction.php
+│       ├── CreateCompanyAction.php
 │       ├── SendInvitationAction.php
 │       └── AcceptInvitationAction.php
 ├── Data/
-│   ├── RegisterUserData.php
 │   └── InvitationData.php
 ├── Http/
 │   ├── Controllers/
 │   │   └── Auth/
 │   │       └── SocialiteController.php
 │   └── Middleware/
-│       └── EnsureCompanyAccess.php
+│       └── EnsureHasCompany.php
 ├── Models/
 │   └── Invitation.php
 └── Notifications/
     └── InviteUserNotification.php
 
 resources/views/livewire/
-├── auth/
-│   ├── login.blade.php
-│   ├── register.blade.php
-│   ├── forgot-password.blade.php
-│   ├── reset-password.blade.php
-│   └── verify-email.blade.php
+├── onboarding/
+│   └── create-company.blade.php    # YENİ
+├── invitation/
+│   └── accept.blade.php            # YENİ
 └── team/
-    └── index.blade.php
+    └── index.blade.php             # YENİ
 
 database/migrations/
-└── xxxx_create_invitations_table.php
-
-routes/
-└── auth.php (güncellenecek)
+└── create_invitations_table.php
 ```
 
 ---
 
 ## Güvenlik Notları
 
-- [ ] CSRF koruması aktif (Livewire otomatik)
-- [ ] Rate limiting: login route'a `throttle:5,1`
-- [ ] Password hash: bcrypt (Laravel default)
-- [ ] Session timeout: 2 saat
-- [ ] Soft delete: kullanıcı silindiğinde `deleted_at` set
+- [x] CSRF koruması aktif (Livewire otomatik)
+- [x] Rate limiting: login route `throttle:5,1`
+- [x] Password hash: bcrypt (Laravel default)
+- [ ] Session timeout: config/session.php
 - [ ] Invitation token: 48 saat geçerli, tek kullanımlık

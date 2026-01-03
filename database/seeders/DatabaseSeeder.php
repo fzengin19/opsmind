@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\CompanyRole;
 use App\Models\Appointment;
 use App\Models\Company;
 use App\Models\Contact;
@@ -42,19 +43,17 @@ class DatabaseSeeder extends Seeder
             'name' => 'Satış',
         ]);
 
-        // Create admin user
+        // Create admin user (Owner)
         $admin = User::firstOrCreate(
             ['email' => 'admin@opsmind.test'],
             [
                 'name' => 'Admin User',
                 'password' => 'password',
                 'email_verified_at' => now(),
-                'company_id' => $company->id,
-                'department_id' => $engineering->id,
-                'job_title' => 'CTO',
                 'timezone' => 'Europe/Istanbul',
             ]
         );
+        $company->addUser($admin, CompanyRole::Owner, $engineering->id, 'CTO');
         $admin->assignRole('admin');
 
         // Create manager user
@@ -64,12 +63,10 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Manager User',
                 'password' => 'password',
                 'email_verified_at' => now(),
-                'company_id' => $company->id,
-                'department_id' => $sales->id,
-                'job_title' => 'Satış Müdürü',
                 'timezone' => 'Europe/Istanbul',
             ]
         );
+        $company->addUser($manager, CompanyRole::Manager, $sales->id, 'Satış Müdürü');
         $manager->assignRole('manager');
 
         // Create member user
@@ -79,12 +76,10 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Team Member',
                 'password' => 'password',
                 'email_verified_at' => now(),
-                'company_id' => $company->id,
-                'department_id' => $engineering->id,
-                'job_title' => 'Developer',
                 'timezone' => 'Europe/Istanbul',
             ]
         );
+        $company->addUser($member, CompanyRole::Member, $engineering->id, 'Developer');
         $member->assignRole('member');
 
         // Create 20 contacts

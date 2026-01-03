@@ -1,0 +1,55 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDEs and editors
+.idea
+.vscode
+.cursor
+*.swp
+*.swo
+*~
+
+# Dependencies (built fresh in Docker)
+node_modules
+vendor
+
+# Build artifacts
+public/build
+public/hot
+
+# Storage
+storage/app/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+
+# Keep gitignore files
+!storage/app/.gitignore
+!storage/framework/.gitignore
+!storage/framework/cache/.gitignore
+!storage/logs/.gitignore
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Testing
+tests
+.phpunit.result.cache
+
+# Documentation
+docs
+*.md
+!README.md
+
+# CI/CD
+.github
+
+# Other
+.DS_Store
+Thumbs.db
+*.log

@@ -12,14 +12,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('company_id')->constrained()->cascadeOnDelete();
-            $table->string('role', 20)->default('member'); // CompanyRole enum
             $table->foreignId('department_id')->nullable()->constrained()->nullOnDelete();
             $table->string('job_title', 100)->nullable();
             $table->timestamp('joined_at')->useCurrent();
             $table->timestamps();
 
             $table->unique(['user_id', 'company_id']);
-            $table->index(['company_id', 'role']);
         });
     }
 

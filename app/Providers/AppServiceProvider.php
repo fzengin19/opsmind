@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,8 +21,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Google OAuth provider
         Event::listen(function (\SocialiteProviders\Manager\SocialiteWasCalled $event) {
             $event->extendSocialite('google', \SocialiteProviders\Google\Provider::class);
+        });
+
+        // View Composer for Sidebar
+        \Illuminate\Support\Facades\View::composer('components.layouts.app.sidebar', function ($view) {
+            $view->with('menu', app(\App\Services\NavigationService::class)->getSidebarMenu());
+        });
+
+        Gate::before(function ($user, $ability) {
+            if ($user->hasRole('owner')) {
+                return true;
+            }
         });
     }
 }

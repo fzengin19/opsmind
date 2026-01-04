@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\CompanyRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -50,7 +49,7 @@ class User extends Authenticatable
     public function companies(): BelongsToMany
     {
         return $this->belongsToMany(Company::class, 'company_user')
-            ->withPivot('role', 'department_id', 'job_title', 'joined_at')
+            ->withPivot('department_id', 'job_title', 'joined_at')
             ->withTimestamps();
     }
 
@@ -72,21 +71,23 @@ class User extends Authenticatable
     }
 
     /**
-     * Get user's role in a specific company.
+     * Get user's role in a specific company (Spatie Role).
      */
-    public function roleIn(Company $company): ?CompanyRole
+    public function roleInCompany(Company $company): ?\Spatie\Permission\Models\Role
     {
-        $pivot = $this->companies()->where('company_id', $company->id)->first()?->pivot;
+        setPermissionsTeamId($company->id);
 
-        return $pivot ? CompanyRole::from($pivot->role) : null;
+        return $this->roles()->first();
     }
 
     /**
-     * Check if user is owner of a company.
+     * Check if user is owner (Sahip) of a company.
      */
     public function isOwnerOf(Company $company): bool
     {
-        return $this->roleIn($company) === CompanyRole::Owner;
+        setPermissionsTeamId($company->id);
+
+        return $this->hasRole('owner');
     }
 
     /**

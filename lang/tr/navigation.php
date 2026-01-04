@@ -6,5 +6,6 @@ return [
     'platform' => 'Platform',
     'dashboard' => 'Kontrol Paneli',
     'settings' => 'Ayarlar',
+    'roles' => 'Roller ve İzinler',
     'logout' => 'Çıkış Yap',
 ];

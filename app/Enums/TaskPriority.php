@@ -14,10 +14,10 @@ enum TaskPriority: string
     public function label(): string
     {
         return match ($this) {
-            self::Low => 'Düşük',
-            self::Medium => 'Orta',
-            self::High => 'Yüksek',
-            self::Urgent => 'Acil',
+            self::Low => __('enums.task_priority.low'),
+            self::Medium => __('enums.task_priority.medium'),
+            self::High => __('enums.task_priority.high'),
+            self::Urgent => __('enums.task_priority.urgent'),
         };
     }
 

@@ -2,10 +2,11 @@
 
 use App\Actions\Auth\SendInvitationAction;
 use App\Data\InvitationData;
-use App\Enums\CompanyRole;
 use App\Models\Invitation;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
+use Spatie\Permission\Models\Role;
 
 new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Component {
     public string $inviteEmail = '';
@@ -16,7 +17,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
     {
         return [
             'inviteEmail' => ['required', 'email'],
-            'inviteRole' => ['required', 'in:admin,manager,member'],
+            'inviteRole' => ['required', 'in:admin,member'],
         ];
     }
 
@@ -30,6 +31,14 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
         return $this->company->users()->with('roles')->get();
     }
 
+    public function getAvailableRolesProperty()
+    {
+        setPermissionsTeamId($this->company->id);
+        return Role::where('company_id', $this->company->id)
+            ->where('name', '!=', 'owner') // Owner cannot be assigned
+            ->pluck('name');
+    }
+
     public function getPendingInvitationsProperty()
     {
         return Invitation::where('company_id', $this->company->id)
@@ -40,14 +49,20 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
 
     public function canManageTeam(): bool
     {
-        $role = Auth::user()->roleIn($this->company);
+        $user = Auth::user();
+        setPermissionsTeamId($this->company->id);
 
-        return $role && $role->canManageTeam();
+        // Owner can do everything
+        if ($user->hasRole('owner')) {
+            return true;
+        }
+
+        return $user->hasPermissionTo('user.invite');
     }
 
     public function sendInvitation(SendInvitationAction $action): void
     {
-        if (! $this->canManageTeam()) {
+        if (!$this->canManageTeam()) {
             return;
         }
 
@@ -55,7 +70,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
 
         $data = new InvitationData(
             email: $this->inviteEmail,
-            role: CompanyRole::from($this->inviteRole),
+            roleName: $this->inviteRole,
         );
 
         $action->execute($this->company, Auth::user(), $data);
@@ -67,20 +82,34 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
         $this->dispatch('invitation-sent');
     }
 
-    public function updateRole(int $userId, string $role): void
+    public function updateRole(int $userId, string $roleName): void
     {
-        if (! $this->canManageTeam()) {
+        if (!$this->canManageTeam()) {
             return;
         }
 
-        $this->company->users()->updateExistingPivot($userId, [
-            'role' => $role,
-        ]);
+        // Cannot assign owner role
+        if ($roleName === 'owner') {
+            return;
+        }
+
+        $targetUser = User::find($userId);
+        if (!$targetUser) {
+            return;
+        }
+
+        // Cannot change owner's role
+        setPermissionsTeamId($this->company->id);
+        if ($targetUser->hasRole('owner')) {
+            return;
+        }
+
+        $targetUser->syncRoles([$roleName]);
     }
 
     public function removeUser(int $userId): void
     {
-        if (! $this->canManageTeam()) {
+        if (!$this->canManageTeam()) {
             return;
         }
 
@@ -89,20 +118,23 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
             return;
         }
 
-        // Cannot remove the last owner
-        if ($this->company->owners()->count() === 1) {
-            $userRole = $this->company->users()->where('user_id', $userId)->first()?->pivot?->role;
-            if ($userRole === 'owner') {
-                return;
-            }
+        $targetUser = User::find($userId);
+        if (!$targetUser) {
+            return;
         }
 
-        $this->company->users()->detach($userId);
+        // Cannot remove an owner
+        setPermissionsTeamId($this->company->id);
+        if ($targetUser->hasRole('owner')) {
+            return;
+        }
+
+        $this->company->removeUser($targetUser);
     }
 
     public function cancelInvitation(int $invitationId): void
     {
-        if (! $this->canManageTeam()) {
+        if (!$this->canManageTeam()) {
             return;
         }
 
@@ -110,25 +142,86 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
             ->where('company_id', $this->company->id)
             ->delete();
     }
+
+    private function getRoleColor(string $roleName): string
+    {
+        return match ($roleName) {
+            'owner' => 'red',
+            'admin' => 'amber',
+            default => 'zinc',
+        };
+    }
 }; ?>
 
 <div>
     <div class="flex flex-col gap-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <flux:heading size="xl">{{ __('team.title') }}</flux:heading>
                 <flux:text class="text-zinc-500">{{ $this->company->name }} {{ __('team.members') }}</flux:text>
             </div>
 
             @if ($this->canManageTeam())
-                <flux:button variant="primary" wire:click="$set('showInviteModal', true)">
+                <flux:button variant="primary" wire:click="$set('showInviteModal', true)" class="w-full sm:w-auto">
                     {{ __('team.invite_button') }}
                 </flux:button>
             @endif
         </div>
 
-        <!-- Team Members -->
-        <div class="overflow-hidden border rounded-xl border-zinc-200 dark:border-zinc-700">
+        <!-- Team Members - Mobile Cards -->
+        <div class="space-y-3 md:hidden">
+            @foreach ($this->users as $user)
+                @php
+                    setPermissionsTeamId($this->company->id);
+                    $userRole = $user->roles->first();
+                    $roleName = $userRole?->name ?? 'member';
+                    $roleColor = match($roleName) {
+                        'owner' => 'red',
+                        'admin' => 'amber',
+                        default => 'zinc',
+                    };
+                @endphp
+                <div wire:key="user-mobile-{{ $user->id }}"
+                    class="p-4 border rounded-xl border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <flux:avatar size="sm" :name="$user->name" />
+                            <div class="min-w-0">
+                                <div class="font-medium truncate">{{ $user->name }}</div>
+                                <div class="text-sm truncate text-zinc-500">{{ $user->email }}</div>
+                            </div>
+                        </div>
+                        @if ($this->canManageTeam() && $user->id !== auth()->id() && $roleName !== 'owner')
+                            <flux:dropdown>
+                                <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" />
+                                <flux:menu>
+                                    <flux:menu.item wire:click="updateRole({{ $user->id }}, 'admin')">
+                                        {{ __('team.make_admin') }}
+                                    </flux:menu.item>
+                                    <flux:menu.item wire:click="updateRole({{ $user->id }}, 'member')">
+                                        {{ __('team.make_member') }}
+                                    </flux:menu.item>
+                                    <flux:menu.separator />
+                                    <flux:menu.item variant="danger" wire:click="removeUser({{ $user->id }})"
+                                        wire:confirm="{{ __('team.remove_confirm') }}">
+                                        {{ __('team.remove_from_team') }}
+                                    </flux:menu.item>
+                                </flux:menu>
+                            </flux:dropdown>
+                        @endif
+                    </div>
+                    <div class="flex items-center justify-between mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                        <flux:badge :color="$roleColor">{{ __('team.roles.' . $roleName) }}</flux:badge>
+                        <span class="text-sm text-zinc-500">
+                            {{ $user->pivot->joined_at ? \Carbon\Carbon::parse($user->pivot->joined_at)->format('d.m.Y') : '-' }}
+                        </span>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <!-- Team Members - Desktop Table -->
+        <div class="hidden md:block border rounded-xl border-zinc-200 dark:border-zinc-700 overflow-hidden">
             <table class="w-full">
                 <thead class="bg-zinc-50 dark:bg-zinc-800">
                     <tr>
@@ -148,41 +241,46 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
                     @foreach ($this->users as $user)
+                        @php
+                            setPermissionsTeamId($this->company->id);
+                            $userRole = $user->roles->first();
+                            $roleName = $userRole?->name ?? 'member';
+                            $roleColor = match($roleName) {
+                                'owner' => 'red',
+                                'admin' => 'amber',
+                                default => 'zinc',
+                            };
+                        @endphp
                         <tr wire:key="user-{{ $user->id }}">
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3">
                                     <flux:avatar size="sm" :name="$user->name" />
-                                    <div>
-                                        <div class="font-medium">{{ $user->name }}</div>
-                                        <div class="text-sm text-zinc-500">{{ $user->email }}</div>
+                                    <div class="min-w-0">
+                                        <div class="font-medium truncate">{{ $user->name }}</div>
+                                        <div class="text-sm truncate text-zinc-500">{{ $user->email }}</div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-4 py-3">
-                                @php $userRole = \App\Enums\CompanyRole::from($user->pivot->role); @endphp
-                                <flux:badge :color="$userRole->color()">{{ $userRole->label() }}</flux:badge>
+                                <flux:badge :color="$roleColor">{{ __('team.roles.' . $roleName) }}</flux:badge>
                             </td>
                             <td class="px-4 py-3 text-sm text-zinc-500">
                                 {{ $user->pivot->joined_at ? \Carbon\Carbon::parse($user->pivot->joined_at)->format('d.m.Y') : '-' }}
                             </td>
                             @if ($this->canManageTeam())
                                 <td class="px-4 py-3 text-right">
-                                    @if ($user->id !== auth()->id())
+                                    @if ($user->id !== auth()->id() && $roleName !== 'owner')
                                         <flux:dropdown>
                                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" />
                                             <flux:menu>
                                                 <flux:menu.item wire:click="updateRole({{ $user->id }}, 'admin')">
                                                     {{ __('team.make_admin') }}
                                                 </flux:menu.item>
-                                                <flux:menu.item wire:click="updateRole({{ $user->id }}, 'manager')">
-                                                    {{ __('team.make_manager') }}
-                                                </flux:menu.item>
                                                 <flux:menu.item wire:click="updateRole({{ $user->id }}, 'member')">
                                                     {{ __('team.make_member') }}
                                                 </flux:menu.item>
                                                 <flux:menu.separator />
-                                                <flux:menu.item variant="danger"
-                                                    wire:click="removeUser({{ $user->id }})"
+                                                <flux:menu.item variant="danger" wire:click="removeUser({{ $user->id }})"
                                                     wire:confirm="{{ __('team.remove_confirm') }}">
                                                     {{ __('team.remove_from_team') }}
                                                 </flux:menu.item>
@@ -201,7 +299,29 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
         @if ($this->canManageTeam() && $this->pendingInvitations->count() > 0)
             <div>
                 <flux:heading size="lg" class="mb-3">{{ __('team.pending_invitations') }}</flux:heading>
-                <div class="overflow-hidden border rounded-xl border-zinc-200 dark:border-zinc-700">
+
+                <!-- Mobile Cards -->
+                <div class="space-y-3 md:hidden">
+                    @foreach ($this->pendingInvitations as $invitation)
+                        <div wire:key="invitation-mobile-{{ $invitation->id }}"
+                            class="p-4 border rounded-xl border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <div class="font-medium truncate">{{ $invitation->email }}</div>
+                                    <div class="text-sm text-zinc-500">{{ $invitation->expires_at->diffForHumans() }}</div>
+                                </div>
+                                <flux:button variant="ghost" size="sm" icon="x-mark"
+                                    wire:click="cancelInvitation({{ $invitation->id }})" />
+                            </div>
+                            <div class="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                                <flux:badge>{{ __('team.roles.' . $invitation->getRoleName()) }}</flux:badge>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- Desktop Table -->
+                <div class="hidden md:block border rounded-xl border-zinc-200 dark:border-zinc-700 overflow-hidden">
                     <table class="w-full">
                         <thead class="bg-zinc-50 dark:bg-zinc-800">
                             <tr>
@@ -222,9 +342,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
                                 <tr wire:key="invitation-{{ $invitation->id }}">
                                     <td class="px-4 py-3">{{ $invitation->email }}</td>
                                     <td class="px-4 py-3">
-                                        <flux:badge :color="$invitation->getCompanyRole()->color()">
-                                            {{ $invitation->getCompanyRole()->label() }}
-                                        </flux:badge>
+                                        <flux:badge>{{ __('team.roles.' . $invitation->getRoleName()) }}</flux:badge>
                                     </td>
                                     <td class="px-4 py-3 text-sm text-zinc-500">
                                         {{ $invitation->expires_at->diffForHumans() }}
@@ -255,7 +373,6 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
 
                 <flux:select wire:model="inviteRole" :label="__('team.invite_role')">
                     <option value="admin">{{ __('team.roles.admin') }}</option>
-                    <option value="manager">{{ __('team.roles.manager') }}</option>
                     <option value="member">{{ __('team.roles.member') }}</option>
                 </flux:select>
 

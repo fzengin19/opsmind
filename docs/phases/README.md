@@ -6,8 +6,9 @@ Bu klasör OpsMind MVP'nin 10 fazını detaylı olarak içerir.
 
 | # | Faz | Süre | Durum |
 |---|-----|------|-------|
-| 01 | [Database & Core Models](01-database-core-models.md) | 3 gün | ⬜ |
-| 02 | [Auth & Roles](02-auth-roles.md) | 4 gün | ⬜ |
+| 01 | [Database & Core Models](01-database-core-models.md) | 3 gün | ✅ |
+| 02 | [Auth & Roles](02-auth-roles.md) | 4 gün | ✅ |
+| 02.1 | [Spatie Teams Refactor](02.1-spatie-teams-refactor.md) | 2 gün | ⬜ |
 | 03 | [Dashboard Skeleton](03-dashboard-skeleton.md) | 2 gün | ⬜ |
 | 04 | [Calendar UI](04-calendar-ui.md) | 4 gün | ⬜ |
 | 05 | [Appointment CRUD](05-appointment-crud.md) | 3 gün | ⬜ |
@@ -17,7 +18,7 @@ Bu klasör OpsMind MVP'nin 10 fazını detaylı olarak içerir.
 | 09 | [Notifications](09-notifications.md) | 3 gün | ⬜ |
 | 10 | [Polish & Testing](10-polish-testing.md) | 4 gün | ⬜ |
 
-**Toplam:** ~36 iş günü (7-8 hafta)
+**Toplam:** ~38 iş günü (8 hafta)
 
 ## Durum Açıklamaları
 

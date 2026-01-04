@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-use App\Enums\CompanyRole;
 use App\Models\Appointment;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Department;
 use App\Models\Task;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Company Model', function () {
+    beforeEach(function () {
+        $this->seed(\Database\Seeders\RoleSeeder::class);
+    });
+
     it('can be created with factory', function () {
         $company = Company::factory()->create();
 
@@ -26,9 +26,10 @@ describe('Company Model', function () {
 
     it('has users relationship via pivot', function () {
         $company = Company::factory()->create();
+        createDefaultRolesForCompany($company);
         $user = User::factory()->create();
 
-        $company->addUser($user, CompanyRole::Member);
+        $company->addUser($user, 'member');
 
         expect($company->users)
             ->toHaveCount(1)
@@ -37,21 +38,25 @@ describe('Company Model', function () {
 
     it('can add user with role', function () {
         $company = Company::factory()->create();
+        createDefaultRolesForCompany($company);
         $user = User::factory()->create();
 
-        $company->addUser($user, CompanyRole::Admin, null, 'CTO');
+        $company->addUser($user, 'admin', null, 'CTO');
 
         $pivot = $company->users()->first()->pivot;
 
-        expect($pivot->role)->toBe('admin');
         expect($pivot->job_title)->toBe('CTO');
+
+        setPermissionsTeamId($company->id);
+        expect($user->hasRole('admin'))->toBeTrue();
     });
 
     it('can remove user', function () {
         $company = Company::factory()->create();
+        createDefaultRolesForCompany($company);
         $user = User::factory()->create();
 
-        $company->addUser($user, CompanyRole::Member);
+        $company->addUser($user, 'member');
         expect($company->users)->toHaveCount(1);
 
         $company->removeUser($user);
@@ -60,27 +65,15 @@ describe('Company Model', function () {
 
     it('can get owners', function () {
         $company = Company::factory()->create();
+        createDefaultRolesForCompany($company);
         $owner = User::factory()->create();
         $member = User::factory()->create();
 
-        $company->addUser($owner, CompanyRole::Owner);
-        $company->addUser($member, CompanyRole::Member);
+        $company->addUser($owner, 'owner');
+        $company->addUser($member, 'member');
 
-        expect($company->owners)->toHaveCount(1);
-        expect($company->owners->first()->id)->toBe($owner->id);
-    });
-
-    it('can get admins (owners + admins)', function () {
-        $company = Company::factory()->create();
-        $owner = User::factory()->create();
-        $admin = User::factory()->create();
-        $member = User::factory()->create();
-
-        $company->addUser($owner, CompanyRole::Owner);
-        $company->addUser($admin, CompanyRole::Admin);
-        $company->addUser($member, CompanyRole::Member);
-
-        expect($company->admins)->toHaveCount(2);
+        expect($company->owners()->get())->toHaveCount(1);
+        expect($company->owners()->first()->id)->toBe($owner->id);
     });
 
     it('has departments relationship', function () {
@@ -94,8 +87,9 @@ describe('Company Model', function () {
 
     it('has contacts relationship', function () {
         $company = Company::factory()->create();
+        createDefaultRolesForCompany($company);
         $user = User::factory()->create();
-        $company->addUser($user, CompanyRole::Owner);
+        $company->addUser($user, 'owner');
 
         $contact = Contact::factory()->create([
             'company_id' => $company->id,
@@ -109,8 +103,9 @@ describe('Company Model', function () {
 
     it('has appointments relationship', function () {
         $company = Company::factory()->create();
+        createDefaultRolesForCompany($company);
         $user = User::factory()->create();
-        $company->addUser($user, CompanyRole::Owner);
+        $company->addUser($user, 'owner');
 
         $appointment = Appointment::factory()->create([
             'company_id' => $company->id,
@@ -124,8 +119,9 @@ describe('Company Model', function () {
 
     it('has tasks relationship', function () {
         $company = Company::factory()->create();
+        createDefaultRolesForCompany($company);
         $user = User::factory()->create();
-        $company->addUser($user, CompanyRole::Owner);
+        $company->addUser($user, 'owner');
 
         $task = Task::factory()->create([
             'company_id' => $company->id,

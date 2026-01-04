@@ -3,21 +3,19 @@
 declare(strict_types=1);
 
 use App\Enums\AppointmentType;
-use App\Enums\CompanyRole;
 use App\Models\Appointment;
 use App\Models\AppointmentAttendee;
 use App\Models\Company;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Appointment Model', function () {
     beforeEach(function () {
+        $this->seed(\Database\Seeders\RoleSeeder::class);
         $this->company = Company::factory()->create();
+        createDefaultRolesForCompany($this->company);
         $this->user = User::factory()->create();
-        $this->company->addUser($this->user, CompanyRole::Owner);
+        $this->company->addUser($this->user, 'owner');
     });
 
     it('can be created with factory', function () {

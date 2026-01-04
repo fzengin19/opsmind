@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_id')->constrained()->cascadeOnDelete();
             $table->string('email');
-            $table->string('role', 20); // CompanyRole enum value
+            $table->string('role_name', 50); // Spatie role name (e.g. 'Yönetici', 'Üye')
             $table->string('token', 64)->unique();
             $table->timestamp('expires_at');
             $table->timestamp('accepted_at')->nullable();

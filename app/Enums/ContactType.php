@@ -14,10 +14,10 @@ enum ContactType: string
     public function label(): string
     {
         return match ($this) {
-            self::Customer => 'Müşteri',
-            self::Vendor => 'Tedarikçi',
-            self::Partner => 'İş Ortağı',
-            self::Lead => 'Aday',
+            self::Customer => __('enums.contact_type.customer'),
+            self::Vendor => __('enums.contact_type.vendor'),
+            self::Partner => __('enums.contact_type.partner'),
+            self::Lead => __('enums.contact_type.lead'),
         };
     }
 

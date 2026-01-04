@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Enums\CompanyRole;
 use App\Models\Company;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -49,13 +48,21 @@ class UserFactory extends Factory
         ]);
     }
 
-    /**
-     * Attach user to a company after creation.
-     */
-    public function forCompany(Company $company, CompanyRole $role = CompanyRole::Member): static
+    public function withCompany(): static
     {
-        return $this->afterCreating(function (User $user) use ($company, $role) {
-            $company->addUser($user, $role);
+        return $this->afterCreating(function (User $user) {
+            app(\Database\Seeders\RoleSeeder::class)->run();
+            app(\App\Actions\Auth\CreateCompanyAction::class)->execute($user, 'Test Company');
+        });
+    }
+
+    /**
+     * Attach user to a company after creation with Spatie role.
+     */
+    public function forCompany(Company $company, string $roleName = 'member'): static
+    {
+        return $this->afterCreating(function (User $user) use ($company, $roleName) {
+            $company->addUser($user, $roleName);
         });
     }
 
@@ -64,7 +71,7 @@ class UserFactory extends Factory
      */
     public function asOwner(Company $company): static
     {
-        return $this->forCompany($company, CompanyRole::Owner);
+        return $this->forCompany($company, 'owner');
     }
 
     /**
@@ -72,14 +79,14 @@ class UserFactory extends Factory
      */
     public function asAdmin(Company $company): static
     {
-        return $this->forCompany($company, CompanyRole::Admin);
+        return $this->forCompany($company, 'admin');
     }
 
     /**
-     * Create user as company manager.
+     * Create user as company member.
      */
-    public function asManager(Company $company): static
+    public function asMember(Company $company): static
     {
-        return $this->forCompany($company, CompanyRole::Manager);
+        return $this->forCompany($company, 'member');
     }
 }

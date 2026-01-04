@@ -42,6 +42,13 @@ Route::middleware(['auth'])->group(function () {
         )
         ->name('two-factor.show');
 
+    // Role Management
+    Route::middleware(['ensure.has.company'])->group(function () {
+        Volt::route('settings/roles', 'settings.roles.index')->name('settings.roles.index');
+        Volt::route('settings/roles/create', 'settings.roles.form')->name('settings.roles.create');
+        Volt::route('settings/roles/{role}/edit', 'settings.roles.form')->name('settings.roles.edit');
+    });
+
     // Team management (requires company)
     Volt::route('team', 'team.index')
         ->middleware(['ensure.has.company'])

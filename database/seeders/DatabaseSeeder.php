@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Enums\CompanyRole;
+use App\Actions\Auth\CreateCompanyAction;
 use App\Models\Appointment;
 use App\Models\Company;
 use App\Models\Contact;
@@ -17,20 +17,18 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // First run RoleSeeder
+        // First run RoleSeeder to create permissions
         $this->call(RoleSeeder::class);
 
-        // Create demo company
-        $company = Company::create([
-            'name' => 'OpsMind Demo',
-            'slug' => 'opsmind-demo',
-            'timezone' => 'Europe/Istanbul',
-            'settings' => [
-                'language' => 'tr',
-                'date_format' => 'd.m.Y',
-                'time_format' => 'H:i',
-            ],
+        // Create admin user first
+        $admin = User::factory()->create([
+            'email' => 'admin@opsmind.test',
+            'name' => 'Admin User',
         ]);
+
+        // Use CreateCompanyAction which creates company + default roles + owner
+        $action = new CreateCompanyAction;
+        $company = $action->execute($admin, 'OpsMind Demo');
 
         // Create departments
         $engineering = Department::create([
@@ -43,44 +41,19 @@ class DatabaseSeeder extends Seeder
             'name' => 'Satış',
         ]);
 
-        // Create admin user (Owner)
-        $admin = User::firstOrCreate(
-            ['email' => 'admin@opsmind.test'],
-            [
-                'name' => 'Admin User',
-                'password' => 'password',
-                'email_verified_at' => now(),
-                'timezone' => 'Europe/Istanbul',
-            ]
-        );
-        $company->addUser($admin, CompanyRole::Owner, $engineering->id, 'CTO');
-        $admin->assignRole('admin');
-
         // Create manager user
-        $manager = User::firstOrCreate(
-            ['email' => 'manager@opsmind.test'],
-            [
-                'name' => 'Manager User',
-                'password' => 'password',
-                'email_verified_at' => now(),
-                'timezone' => 'Europe/Istanbul',
-            ]
-        );
-        $company->addUser($manager, CompanyRole::Manager, $sales->id, 'Satış Müdürü');
-        $manager->assignRole('manager');
+        $manager = User::factory()->create([
+            'email' => 'manager@opsmind.test',
+            'name' => 'Manager User',
+        ]);
+        $company->addUser($manager, 'admin', $sales->id, 'Satış Müdürü');
 
         // Create member user
-        $member = User::firstOrCreate(
-            ['email' => 'member@opsmind.test'],
-            [
-                'name' => 'Team Member',
-                'password' => 'password',
-                'email_verified_at' => now(),
-                'timezone' => 'Europe/Istanbul',
-            ]
-        );
-        $company->addUser($member, CompanyRole::Member, $engineering->id, 'Developer');
-        $member->assignRole('member');
+        $member = User::factory()->create([
+            'email' => 'member@opsmind.test',
+            'name' => 'Team Member',
+        ]);
+        $company->addUser($member, 'member', $engineering->id, 'Developer');
 
         // Create 20 contacts
         Contact::factory(20)->create([

@@ -2,20 +2,18 @@
 
 declare(strict_types=1);
 
-use App\Enums\CompanyRole;
 use App\Enums\ContactType;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Contact Model', function () {
     beforeEach(function () {
+        $this->seed(\Database\Seeders\RoleSeeder::class);
         $this->company = Company::factory()->create();
+        createDefaultRolesForCompany($this->company);
         $this->user = User::factory()->create();
-        $this->company->addUser($this->user, CompanyRole::Owner);
+        $this->company->addUser($this->user, 'owner');
     });
 
     it('can be created with factory', function () {

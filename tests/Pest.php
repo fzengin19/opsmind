@@ -41,7 +41,25 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function createDefaultRolesForCompany(\App\Models\Company $company): void
 {
-    // ..
+    setPermissionsTeamId($company->id);
+
+    \Spatie\Permission\Models\Role::create([
+        'name' => 'owner',
+        'guard_name' => 'web',
+        'company_id' => $company->id,
+    ])->givePermissionTo(\Spatie\Permission\Models\Permission::all());
+
+    \Spatie\Permission\Models\Role::create([
+        'name' => 'admin',
+        'guard_name' => 'web',
+        'company_id' => $company->id,
+    ])->givePermissionTo(\Spatie\Permission\Models\Permission::all());
+
+    \Spatie\Permission\Models\Role::create([
+        'name' => 'member',
+        'guard_name' => 'web',
+        'company_id' => $company->id,
+    ]);
 }

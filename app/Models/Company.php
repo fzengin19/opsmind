@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\CompanyRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -36,40 +35,33 @@ class Company extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'company_user')
-            ->withPivot('role', 'department_id', 'job_title', 'joined_at')
+            ->withPivot('department_id', 'job_title', 'joined_at')
             ->withTimestamps();
     }
 
     /**
-     * Get company owner(s).
+     * Get company owners (users with Sahip role).
      */
-    public function owners(): BelongsToMany
+    public function owners()
     {
-        return $this->users()->wherePivot('role', CompanyRole::Owner->value);
+        setPermissionsTeamId($this->id);
+
+        return $this->users()->whereHas('roles', fn ($q) => $q->where('name', 'owner'));
     }
 
     /**
-     * Get company admins.
+     * Add user to company with Spatie role.
      */
-    public function admins(): BelongsToMany
-    {
-        return $this->users()->wherePivotIn('role', [
-            CompanyRole::Owner->value,
-            CompanyRole::Admin->value,
-        ]);
-    }
-
-    /**
-     * Add user to company with role.
-     */
-    public function addUser(User $user, CompanyRole $role, ?int $departmentId = null, ?string $jobTitle = null): void
+    public function addUser(User $user, string $roleName, ?int $departmentId = null, ?string $jobTitle = null): void
     {
         $this->users()->attach($user->id, [
-            'role' => $role->value,
             'department_id' => $departmentId,
             'job_title' => $jobTitle,
             'joined_at' => now(),
         ]);
+
+        setPermissionsTeamId($this->id);
+        $user->assignRole($roleName);
     }
 
     /**
@@ -77,6 +69,11 @@ class Company extends Model
      */
     public function removeUser(User $user): void
     {
+        // Remove Spatie roles first
+        setPermissionsTeamId($this->id);
+        $user->syncRoles([]);
+
+        // Then detach from pivot
         $this->users()->detach($user->id);
     }
 

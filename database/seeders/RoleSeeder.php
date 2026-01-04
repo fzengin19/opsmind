@@ -6,7 +6,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
@@ -15,7 +14,8 @@ class RoleSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Create permissions
+        // Create global permissions (not team-scoped)
+        // Roles will be created per-company in CreateCompanyAction
         $permissions = [
             // Company
             'company.manage',
@@ -45,41 +45,19 @@ class RoleSeeder extends Seeder
             'task.update',
             'task.delete',
             'task.assign',
+
+            // Roles
+            'role.view',
+            'role.create',
+            'role.update',
+            'role.delete',
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        // Create roles and assign permissions
-        $admin = Role::create(['name' => 'admin']);
-        $admin->givePermissionTo(Permission::all());
-
-        $manager = Role::create(['name' => 'manager']);
-        $manager->givePermissionTo([
-            'user.view',
-            'user.invite',
-            'contact.view',
-            'contact.create',
-            'contact.update',
-            'appointment.view',
-            'appointment.create',
-            'appointment.update',
-            'task.view',
-            'task.create',
-            'task.update',
-            'task.assign',
-        ]);
-
-        $member = Role::create(['name' => 'member']);
-        $member->givePermissionTo([
-            'contact.view',
-            'contact.create',
-            'appointment.view',
-            'appointment.create',
-            'task.view',
-            'task.create',
-            'task.update',
-        ]);
+        // Note: Roles are created per-company in CreateCompanyAction::createDefaultRoles()
+        // No global roles are needed with teams feature enabled
     }
 }

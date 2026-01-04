@@ -13,9 +13,9 @@ enum AttendeeStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Pending => 'Bekliyor',
-            self::Accepted => 'Kabul Edildi',
-            self::Declined => 'Reddedildi',
+            self::Pending => __('enums.attendee_status.pending'),
+            self::Accepted => __('enums.attendee_status.accepted'),
+            self::Declined => __('enums.attendee_status.declined'),
         };
     }
 

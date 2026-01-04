@@ -15,14 +15,9 @@ class AcceptInvitationAction
     public function execute(Invitation $invitation, User $user): void
     {
         // Add user to company with the invited role
-        $invitation->company->addUser($user, $invitation->getCompanyRole());
+        $invitation->company->addUser($user, $invitation->getRoleName());
 
         // Mark invitation as accepted
         $invitation->update(['accepted_at' => now()]);
-
-        // Assign default member role if user has no global role
-        if ($user->roles->isEmpty()) {
-            $user->assignRole('member');
-        }
     }
 }

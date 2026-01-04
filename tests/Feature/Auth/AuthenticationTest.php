@@ -47,7 +47,11 @@ test('users with two factor enabled are redirected to two factor challenge', fun
         'confirmPassword' => true,
     ]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->withCompany()->create([
+        'two_factor_secret' => encrypt('secret'),
+        'two_factor_recovery_codes' => encrypt(json_encode([])),
+        'two_factor_confirmed_at' => now(),
+    ]);
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,

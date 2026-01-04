@@ -15,11 +15,11 @@ enum TaskStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Backlog => 'Beklemede',
-            self::Todo => 'Yapılacak',
-            self::InProgress => 'Devam Ediyor',
-            self::Review => 'İnceleme',
-            self::Done => 'Tamamlandı',
+            self::Backlog => __('enums.task_status.backlog'),
+            self::Todo => __('enums.task_status.todo'),
+            self::InProgress => __('enums.task_status.in_progress'),
+            self::Review => __('enums.task_status.review'),
+            self::Done => __('enums.task_status.done'),
         };
     }
 

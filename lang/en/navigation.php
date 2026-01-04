@@ -6,5 +6,6 @@ return [
     'platform' => 'Platform',
     'dashboard' => 'Dashboard',
     'settings' => 'Settings',
+    'roles' => 'Roles & Permissions',
     'logout' => 'Log Out',
 ];

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\CompanyRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,7 +16,7 @@ class Invitation extends Model
     protected $fillable = [
         'company_id',
         'email',
-        'role',
+        'role_name',
         'token',
         'expires_at',
         'accepted_at',
@@ -65,11 +64,11 @@ class Invitation extends Model
     }
 
     /**
-     * Get role as CompanyRole enum.
+     * Get the role name for this invitation.
      */
-    public function getCompanyRole(): CompanyRole
+    public function getRoleName(): string
     {
-        return CompanyRole::from($this->role);
+        return $this->role_name;
     }
 
     // ==========================================

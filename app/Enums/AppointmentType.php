@@ -14,10 +14,10 @@ enum AppointmentType: string
     public function label(): string
     {
         return match ($this) {
-            self::Meeting => 'Toplantı',
-            self::Call => 'Telefon',
-            self::Focus => 'Odaklanma',
-            self::Break => 'Mola',
+            self::Meeting => __('enums.appointment_type.meeting'),
+            self::Call => __('enums.appointment_type.call'),
+            self::Focus => __('enums.appointment_type.focus'),
+            self::Break => __('enums.appointment_type.break'),
         };
     }
 

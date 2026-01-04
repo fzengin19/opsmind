@@ -34,7 +34,7 @@ class InviteUserNotification extends Notification implements ShouldQueue
                 'inviter' => $this->invitation->invitedBy->name,
                 'company' => $this->invitation->company->name,
             ]))
-            ->line(__('notification.invitation.role', ['role' => $this->invitation->getCompanyRole()->label()]))
+            ->line(__('notification.invitation.role', ['role' => $this->invitation->getRoleName()]))
             ->action(__('notification.invitation.action'), $acceptUrl)
             ->line(__('notification.invitation.expires'))
             ->salutation(__('notification.invitation.salutation'));

@@ -27,7 +27,7 @@ class SendInvitationAction
         $invitation = Invitation::create([
             'company_id' => $company->id,
             'email' => $data->email,
-            'role' => $data->role->value,
+            'role_name' => $data->roleName,
             'token' => Invitation::generateToken(),
             'expires_at' => now()->addHours(48),
             'invited_by' => $invitedBy->id,

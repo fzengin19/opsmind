@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'login' => [
+        'title' => 'Log in to your account',
+        'description' => 'Enter your email and password below to log in',
+        'button' => 'Log in',
+        'remember' => 'Remember me',
+        'forgot_password' => 'Forgot your password?',
+        'no_account' => "Don't have an account?",
+        'sign_up' => 'Sign up',
+        'with_google' => 'Continue with Google',
+        'or' => 'or',
+        'email' => 'Email address',
+        'password' => 'Password',
+    ],
+
+    'register' => [
+        'title' => 'Create an account',
+        'description' => 'Enter your details below to create your account',
+        'button' => 'Create account',
+        'have_account' => 'Already have an account?',
+        'sign_in' => 'Log in',
+        'name' => 'Name',
+        'name_placeholder' => 'Full name',
+        'email' => 'Email address',
+        'password' => 'Password',
+        'password_confirmation' => 'Confirm password',
+    ],
+
+    'password' => [
+        'forgot_title' => 'Forgot password',
+        'forgot_description' => 'Enter your email to receive a password reset link',
+        'send_link' => 'Email password reset link',
+        'or_return' => 'Or, return to',
+        'reset_title' => 'Reset password',
+        'reset_description' => 'Please enter your new password below',
+        'reset_button' => 'Reset password',
+        'confirm_title' => 'Confirm password',
+        'confirm_description' => 'This is a secure area of the application. Please confirm your password before continuing.',
+        'confirm_button' => 'Confirm',
+    ],
+
+    'verify' => [
+        'title' => 'Email Verification',
+        'description' => 'Please verify your email address by clicking on the link we just emailed to you.',
+        'resend' => 'Resend verification email',
+        'sent' => 'A new verification link has been sent to the email address you provided during registration.',
+    ],
+
+    '2fa' => [
+        'code_title' => 'Authentication Code',
+        'code_description' => 'Enter the authentication code provided by your authenticator application.',
+        'recovery_title' => 'Recovery Code',
+        'recovery_description' => 'Please confirm access to your account by entering one of your emergency recovery codes.',
+        'continue' => 'Continue',
+        'or_can' => 'or you can',
+        'use_recovery' => 'login using a recovery code',
+        'use_auth_code' => 'login using an authentication code',
+    ],
+
+    'logout' => 'Log out',
+];

@@ -1,6 +1,6 @@
 <x-layouts.auth>
     <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
+        <x-auth-header :title="__('auth.login.title')" :description="__('auth.login.description')" />
 
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
@@ -9,27 +9,27 @@
             @csrf
 
             <!-- Email Address -->
-            <flux:input name="email" :label="__('Email address')" :value="old('email')" type="email" required autofocus
+            <flux:input name="email" :label="__('auth.login.email')" :value="old('email')" type="email" required autofocus
                 autocomplete="email" placeholder="email@example.com" />
 
             <!-- Password -->
             <div class="relative">
-                <flux:input name="password" :label="__('Password')" type="password" required
-                    autocomplete="current-password" :placeholder="__('Password')" viewable />
+                <flux:input name="password" :label="__('auth.login.password')" type="password" required
+                    autocomplete="current-password" :placeholder="__('auth.login.password')" viewable />
 
                 @if (Route::has('password.request'))
                     <flux:link class="absolute top-0 text-sm end-0" :href="route('password.request')" wire:navigate>
-                        {{ __('Forgot your password?') }}
+                        {{ __('auth.login.forgot_password') }}
                     </flux:link>
                 @endif
             </div>
 
             <!-- Remember Me -->
-            <flux:checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
+            <flux:checkbox name="remember" :label="__('auth.login.remember')" :checked="old('remember')" />
 
             <div class="flex items-center justify-end">
                 <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">
-                    {{ __('Log in') }}
+                    {{ __('auth.login.button') }}
                 </flux:button>
             </div>
         </form>
@@ -40,7 +40,7 @@
                 <div class="w-full border-t border-zinc-200 dark:border-zinc-700"></div>
             </div>
             <div class="relative flex justify-center text-sm">
-                <span class="px-2 text-zinc-500 bg-white dark:bg-zinc-900">{{ __('veya') }}</span>
+                <span class="px-2 text-zinc-500 bg-white dark:bg-zinc-900">{{ __('auth.login.or') }}</span>
             </div>
         </div>
 
@@ -57,13 +57,13 @@
                 <path fill="#EA4335"
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
             </svg>
-            {{ __('Google ile devam et') }}
+            {{ __('auth.login.with_google') }}
         </a>
 
         @if (Route::has('register'))
             <div class="space-x-1 text-sm text-center rtl:space-x-reverse text-zinc-600 dark:text-zinc-400">
-                <span>{{ __('Don\'t have an account?') }}</span>
-                <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
+                <span>{{ __('auth.login.no_account') }}</span>
+                <flux:link :href="route('register')" wire:navigate>{{ __('auth.login.sign_up') }}</flux:link>
             </div>
         @endif
     </div>

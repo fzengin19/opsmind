@@ -14,10 +14,10 @@ enum CompanyRole: string
     public function label(): string
     {
         return match ($this) {
-            self::Owner => 'Sahip',
-            self::Admin => 'Yönetici',
-            self::Manager => 'Müdür',
-            self::Member => 'Üye',
+            self::Owner => __('team.roles.owner'),
+            self::Admin => __('team.roles.admin'),
+            self::Manager => __('team.roles.manager'),
+            self::Member => __('team.roles.member'),
         };
     }
 

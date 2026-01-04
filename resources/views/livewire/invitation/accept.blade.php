@@ -21,8 +21,8 @@ new #[\Livewire\Attributes\Layout('components.layouts.auth.simple')] class exten
         $this->token = $token;
         $this->invitation = Invitation::where('token', $token)->first();
 
-        if (!$this->invitation) {
-            abort(404, 'Davet bulunamadı.');
+        if (! $this->invitation) {
+            abort(404, __('invitation.not_found'));
         }
 
         $this->isExpired = $this->invitation->isExpired();
@@ -54,7 +54,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.auth.simple')] class exten
 
     public function acceptInvitation(AcceptInvitationAction $action): void
     {
-        if (!$this->invitation || !$this->invitation->isValid()) {
+        if (! $this->invitation || ! $this->invitation->isValid()) {
             return;
         }
 
@@ -62,8 +62,8 @@ new #[\Livewire\Attributes\Layout('components.layouts.auth.simple')] class exten
 
         if ($this->userExists) {
             // Login existing user
-            if (!Auth::attempt(['email' => $this->email, 'password' => $this->password])) {
-                $this->addError('password', 'Şifre hatalı.');
+            if (! Auth::attempt(['email' => $this->email, 'password' => $this->password])) {
+                $this->addError('password', __('invitation.password_wrong'));
 
                 return;
             }
@@ -88,7 +88,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.auth.simple')] class exten
 
     public function acceptAsLoggedInUser(): void
     {
-        if (!$this->invitation || !$this->invitation->isValid()) {
+        if (! $this->invitation || ! $this->invitation->isValid()) {
             return;
         }
 
@@ -100,52 +100,51 @@ new #[\Livewire\Attributes\Layout('components.layouts.auth.simple')] class exten
 }; ?>
 
 <div class="flex flex-col gap-6">
-    <x-auth-header :title="__('Takım Daveti')" :description="$invitation ? $invitation->company->name . ' takımına davet edildiniz' : ''" />
+    <x-auth-header :title="__('invitation.title')"
+        :description="$invitation ? $invitation->company->name . ' ' . __('team.members') : ''" />
 
     @if ($isExpired)
         <flux:callout variant="danger">
-            <flux:callout.heading>Davet Süresi Doldu</flux:callout.heading>
-            <flux:callout.text>Bu davet artık geçerli değil. Lütfen yöneticinizden yeni bir davet isteyin.
-            </flux:callout.text>
+            <flux:callout.heading>{{ __('invitation.expired_title') }}</flux:callout.heading>
+            <flux:callout.text>{{ __('invitation.expired_description') }}</flux:callout.text>
         </flux:callout>
     @elseif ($isAccepted)
         <flux:callout variant="warning">
-            <flux:callout.heading>Davet Zaten Kullanıldı</flux:callout.heading>
-            <flux:callout.text>Bu davet daha önce kabul edilmiş.</flux:callout.text>
+            <flux:callout.heading>{{ __('invitation.accepted_title') }}</flux:callout.heading>
+            <flux:callout.text>{{ __('invitation.accepted_description') }}</flux:callout.text>
         </flux:callout>
         <a href="{{ route('login') }}" class="text-center">
-            <flux:button variant="primary" class="w-full">Giriş Yap</flux:button>
+            <flux:button variant="primary" class="w-full">{{ __('auth.login.button') }}</flux:button>
         </a>
     @elseif (auth()->check() && auth()->user()->email === $email)
-        <p class="text-center text-zinc-600 dark:text-zinc-400">Daveti otomatik kabul ediyoruz...</p>
+        <p class="text-center text-zinc-600 dark:text-zinc-400">{{ __('invitation.auto_accepting') }}</p>
     @else
         <form wire:submit="acceptInvitation" class="flex flex-col gap-6">
             @if ($userExists)
                 <flux:callout variant="info">
-                    <flux:callout.text>Bu email adresi ile kayıtlı bir hesap var. Giriş yaparak daveti kabul
-                        edebilirsiniz.
-                    </flux:callout.text>
+                    <flux:callout.text>{{ __('invitation.existing_user_info') }}</flux:callout.text>
                 </flux:callout>
 
-                <flux:input :value="$email" :label="__('Email')" type="email" disabled />
+                <flux:input :value="$email" :label="__('common.email')" type="email" disabled />
 
-                <flux:input wire:model="password" :label="__('Şifre')" type="password" required placeholder="Mevcut şifreniz"
-                    viewable />
+                <flux:input wire:model="password" :label="__('invitation.password')" type="password" required
+                    :placeholder="__('invitation.password_current')" viewable />
             @else
-                <flux:input wire:model="name" :label="__('Ad Soyad')" type="text" required autofocus
-                    placeholder="Adınız Soyadınız" />
+                <flux:input wire:model="name" :label="__('invitation.name')" type="text" required autofocus
+                    :placeholder="__('invitation.name_placeholder')" />
 
-                <flux:input :value="$email" :label="__('Email')" type="email" disabled />
+                <flux:input :value="$email" :label="__('common.email')" type="email" disabled />
 
-                <flux:input wire:model="password" :label="__('Şifre')" type="password" required placeholder="En az 8 karakter"
+                <flux:input wire:model="password" :label="__('invitation.password')" type="password" required
+                    :placeholder="__('invitation.password_placeholder')" viewable />
+
+                <flux:input wire:model="password_confirmation" :label="__('invitation.password_confirmation')"
+                    type="password" required :placeholder="__('invitation.password_confirmation_placeholder')"
                     viewable />
-
-                <flux:input wire:model="password_confirmation" :label="__('Şifre Tekrar')" type="password" required
-                    placeholder="Şifrenizi tekrar girin" viewable />
             @endif
 
             <flux:button variant="primary" type="submit" class="w-full">
-                {{ $userExists ? __('Giriş Yap ve Daveti Kabul Et') : __('Kayıt Ol ve Daveti Kabul Et') }}
+                {{ $userExists ? __('invitation.login_and_accept') : __('invitation.register_and_accept') }}
             </flux:button>
         </form>
     @endif

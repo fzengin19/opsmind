@@ -28,12 +28,15 @@ class InviteUserNotification extends Notification implements ShouldQueue
         $acceptUrl = route('invitation.accept', ['token' => $this->invitation->token]);
 
         return (new MailMessage)
-            ->subject("{$this->invitation->company->name} takımına davet edildiniz")
-            ->greeting('Merhaba!')
-            ->line("{$this->invitation->invitedBy->name}, sizi {$this->invitation->company->name} takımına katılmaya davet etti.")
-            ->line("Rol: {$this->invitation->getCompanyRole()->label()}")
-            ->action('Daveti Kabul Et', $acceptUrl)
-            ->line('Bu davet 48 saat içinde geçerliliğini yitirecektir.')
-            ->salutation('İyi günler!');
+            ->subject(__('notification.invitation.subject', ['company' => $this->invitation->company->name]))
+            ->greeting(__('notification.invitation.greeting'))
+            ->line(__('notification.invitation.line1', [
+                'inviter' => $this->invitation->invitedBy->name,
+                'company' => $this->invitation->company->name,
+            ]))
+            ->line(__('notification.invitation.role', ['role' => $this->invitation->getCompanyRole()->label()]))
+            ->action(__('notification.invitation.action'), $acceptUrl)
+            ->line(__('notification.invitation.expires'))
+            ->salutation(__('notification.invitation.salutation'));
     }
 }

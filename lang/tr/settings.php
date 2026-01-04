@@ -1,0 +1,72 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'title' => 'Ayarlar',
+
+    'profile' => [
+        'title' => 'Profil',
+        'description' => 'Adınızı ve email adresinizi güncelleyin',
+        'name' => 'Ad Soyad',
+        'email' => 'Email',
+        'unverified' => 'Email adresiniz doğrulanmamış.',
+        'resend_verification' => 'Doğrulama emailini tekrar göndermek için tıklayın.',
+        'verification_sent' => 'Email adresinize yeni bir doğrulama linki gönderildi.',
+        'save' => 'Kaydet',
+        'saved' => 'Kaydedildi.',
+    ],
+
+    'password' => [
+        'title' => 'Şifre Güncelle',
+        'description' => 'Hesabınızın güvenliği için uzun, rastgele bir şifre kullanın',
+        'current' => 'Mevcut Şifre',
+        'new' => 'Yeni Şifre',
+        'confirm' => 'Şifre Tekrar',
+    ],
+
+    'appearance' => [
+        'title' => 'Görünüm',
+        'description' => 'Hesabınız için görünüm ayarlarını güncelleyin',
+        'light' => 'Açık',
+        'dark' => 'Koyu',
+        'system' => 'Sistem',
+    ],
+
+    'delete_account' => [
+        'title' => 'Hesabı Sil',
+        'description' => 'Hesabınızı sildiğinizde, tüm verileriniz kalıcı olarak silinecektir.',
+        'button' => 'Hesabı Sil',
+        'confirm_title' => 'Hesabınızı silmek istediğinizden emin misiniz?',
+        'confirm_description' => 'Bu işlem geri alınamaz. Lütfen şifrenizi girin.',
+        'cancel' => 'İptal',
+    ],
+
+    '2fa' => [
+        'title' => 'İki Faktörlü Kimlik Doğrulama',
+        'description' => 'İki faktörlü kimlik doğrulama ayarlarınızı yönetin',
+        'enabled' => 'Aktif',
+        'disabled' => 'Devre Dışı',
+        'enabled_message' => 'İki faktörlü kimlik doğrulama etkinleştirildiğinde, giriş sırasında TOTP destekli bir uygulamadan alacağınız güvenli bir kod istenecektir.',
+        'disabled_message' => 'İki faktörlü kimlik doğrulamayı etkinleştirdiğinizde, giriş sırasında güvenli bir pin istenecektir. Bu pin, telefonunuzdaki TOTP destekli uygulamadan alınabilir.',
+        'enable_button' => '2FA Etkinleştir',
+        'disable_button' => '2FA Devre Dışı Bırak',
+        'enabled_title' => 'İki Faktörlü Kimlik Doğrulama Etkinleştirildi',
+        'enabled_desc' => 'İki faktörlü kimlik doğrulama şimdi etkin. Authenticator uygulamanızda QR kodunu tarayın veya kurulum anahtarını girin.',
+        'verify_title' => 'Doğrulama Kodunu Onayla',
+        'verify_desc' => 'Authenticator uygulamanızdan 6 haneli kodu girin.',
+        'enable_title' => 'İki Faktörlü Kimlik Doğrulamayı Etkinleştir',
+        'enable_desc' => 'İki faktörlü kimlik doğrulamayı tamamlamak için QR kodunu tarayın veya kurulum anahtarını authenticator uygulamanıza girin.',
+        'continue' => 'Devam',
+        'close' => 'Kapat',
+        'back' => 'Geri',
+        'confirm' => 'Onayla',
+        'or_manual' => 'veya kodu manuel olarak girin',
+        'recovery_codes' => '2FA Kurtarma Kodları',
+        'recovery_desc' => 'Kurtarma kodları, 2FA cihazınızı kaybederseniz hesabınıza tekrar erişmenizi sağlar. Bunları güvenli bir şifre yöneticisinde saklayın.',
+        'view_codes' => 'Kurtarma Kodlarını Göster',
+        'hide_codes' => 'Kurtarma Kodlarını Gizle',
+        'regenerate' => 'Kodları Yenile',
+        'recovery_usage' => 'Her kurtarma kodu hesabınıza bir kez erişmek için kullanılabilir ve kullanıldıktan sonra silinir. Daha fazlasına ihtiyacınız varsa yukarıdaki Kodları Yenile butonuna tıklayın.',
+    ],
+];

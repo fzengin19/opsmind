@@ -14,11 +14,11 @@
         </a>
 
         <flux:navlist variant="outline">
-            <flux:navlist.group :heading="__('Platform')" class="grid">
+            <flux:navlist.group :heading="__('navigation.platform')" class="grid">
                 <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
-                    wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                    wire:navigate>{{ __('navigation.dashboard') }}</flux:navlist.item>
                 <flux:navlist.item icon="users" :href="route('team.index')" :current="request()->routeIs('team.index')"
-                    wire:navigate>{{ __('Takım') }}</flux:navlist.item>
+                    wire:navigate>{{ __('team.title') }}</flux:navlist.item>
             </flux:navlist.group>
         </flux:navlist>
 
@@ -51,7 +51,8 @@
                 <flux:menu.separator />
 
                 <flux:menu.radio.group>
-                    <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>{{ __('Settings') }}
+                    <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
+                        {{ __('navigation.settings') }}
                     </flux:menu.item>
                 </flux:menu.radio.group>
 
@@ -61,7 +62,7 @@
                     @csrf
                     <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full"
                         data-test="logout-button">
-                        {{ __('Log Out') }}
+                        {{ __('navigation.logout') }}
                     </flux:menu.item>
                 </form>
             </flux:menu>
@@ -99,7 +100,8 @@
                 <flux:menu.separator />
 
                 <flux:menu.radio.group>
-                    <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>{{ __('Settings') }}
+                    <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
+                        {{ __('navigation.settings') }}
                     </flux:menu.item>
                 </flux:menu.radio.group>
 
@@ -109,7 +111,7 @@
                     @csrf
                     <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full"
                         data-test="logout-button">
-                        {{ __('Log Out') }}
+                        {{ __('navigation.logout') }}
                     </flux:menu.item>
                 </form>
             </flux:menu>

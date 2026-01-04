@@ -116,13 +116,13 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
     <div class="flex flex-col gap-6">
         <div class="flex items-center justify-between">
             <div>
-                <flux:heading size="xl">{{ __('Takım Yönetimi') }}</flux:heading>
-                <flux:text class="text-zinc-500">{{ $this->company->name }} takım üyeleri</flux:text>
+                <flux:heading size="xl">{{ __('team.title') }}</flux:heading>
+                <flux:text class="text-zinc-500">{{ $this->company->name }} {{ __('team.members') }}</flux:text>
             </div>
 
             @if ($this->canManageTeam())
                 <flux:button variant="primary" wire:click="$set('showInviteModal', true)">
-                    {{ __('Davet Gönder') }}
+                    {{ __('team.invite_button') }}
                 </flux:button>
             @endif
         </div>
@@ -133,13 +133,13 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
                 <thead class="bg-zinc-50 dark:bg-zinc-800">
                     <tr>
                         <th class="px-4 py-3 text-sm font-medium text-left text-zinc-700 dark:text-zinc-300">
-                            {{ __('Üye') }}
+                            {{ __('team.member') }}
                         </th>
                         <th class="px-4 py-3 text-sm font-medium text-left text-zinc-700 dark:text-zinc-300">
-                            {{ __('Rol') }}
+                            {{ __('common.role') }}
                         </th>
                         <th class="px-4 py-3 text-sm font-medium text-left text-zinc-700 dark:text-zinc-300">
-                            {{ __('Katılım') }}
+                            {{ __('team.joined_at') }}
                         </th>
                         @if ($this->canManageTeam())
                             <th class="px-4 py-3"></th>
@@ -171,20 +171,20 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
                                         <flux:dropdown>
                                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" />
                                             <flux:menu>
-                                                <flux:menu.item wire:click="updateRole({{ $user->id }}, 'admin')">Admin
-                                                    Yap
+                                                <flux:menu.item wire:click="updateRole({{ $user->id }}, 'admin')">
+                                                    {{ __('team.make_admin') }}
                                                 </flux:menu.item>
                                                 <flux:menu.item wire:click="updateRole({{ $user->id }}, 'manager')">
-                                                    Müdür Yap
+                                                    {{ __('team.make_manager') }}
                                                 </flux:menu.item>
-                                                <flux:menu.item wire:click="updateRole({{ $user->id }}, 'member')">Üye
-                                                    Yap
+                                                <flux:menu.item wire:click="updateRole({{ $user->id }}, 'member')">
+                                                    {{ __('team.make_member') }}
                                                 </flux:menu.item>
                                                 <flux:menu.separator />
                                                 <flux:menu.item variant="danger"
                                                     wire:click="removeUser({{ $user->id }})"
-                                                    wire:confirm="Bu kullanıcıyı takımdan çıkarmak istediğinizden emin misiniz?">
-                                                    Takımdan Çıkar
+                                                    wire:confirm="{{ __('team.remove_confirm') }}">
+                                                    {{ __('team.remove_from_team') }}
                                                 </flux:menu.item>
                                             </flux:menu>
                                         </flux:dropdown>
@@ -200,19 +200,19 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
         <!-- Pending Invitations -->
         @if ($this->canManageTeam() && $this->pendingInvitations->count() > 0)
             <div>
-                <flux:heading size="lg" class="mb-3">{{ __('Bekleyen Davetler') }}</flux:heading>
+                <flux:heading size="lg" class="mb-3">{{ __('team.pending_invitations') }}</flux:heading>
                 <div class="overflow-hidden border rounded-xl border-zinc-200 dark:border-zinc-700">
                     <table class="w-full">
                         <thead class="bg-zinc-50 dark:bg-zinc-800">
                             <tr>
                                 <th class="px-4 py-3 text-sm font-medium text-left text-zinc-700 dark:text-zinc-300">
-                                    {{ __('Email') }}
+                                    {{ __('common.email') }}
                                 </th>
                                 <th class="px-4 py-3 text-sm font-medium text-left text-zinc-700 dark:text-zinc-300">
-                                    {{ __('Rol') }}
+                                    {{ __('common.role') }}
                                 </th>
                                 <th class="px-4 py-3 text-sm font-medium text-left text-zinc-700 dark:text-zinc-300">
-                                    {{ __('Geçerlilik') }}
+                                    {{ __('team.validity') }}
                                 </th>
                                 <th class="px-4 py-3"></th>
                             </tr>
@@ -232,7 +232,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
                                     <td class="px-4 py-3 text-right">
                                         <flux:button variant="ghost" size="sm"
                                             wire:click="cancelInvitation({{ $invitation->id }})">
-                                            {{ __('İptal') }}
+                                            {{ __('common.cancel') }}
                                         </flux:button>
                                     </td>
                                 </tr>
@@ -247,24 +247,24 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
     <!-- Invite Modal -->
     <flux:modal wire:model="showInviteModal" class="max-w-md">
         <div class="flex flex-col gap-6">
-            <flux:heading size="lg">{{ __('Takım Üyesi Davet Et') }}</flux:heading>
+            <flux:heading size="lg">{{ __('team.invite_modal_title') }}</flux:heading>
 
             <form wire:submit="sendInvitation" class="flex flex-col gap-4">
-                <flux:input wire:model="inviteEmail" :label="__('Email Adresi')" type="email" required
-                    placeholder="ornek@email.com" />
+                <flux:input wire:model="inviteEmail" :label="__('team.invite_email')" type="email" required
+                    :placeholder="__('team.invite_email_placeholder')" />
 
-                <flux:select wire:model="inviteRole" :label="__('Rol')">
-                    <option value="admin">Yönetici (Admin)</option>
-                    <option value="manager">Müdür (Manager)</option>
-                    <option value="member">Üye (Member)</option>
+                <flux:select wire:model="inviteRole" :label="__('team.invite_role')">
+                    <option value="admin">{{ __('team.roles.admin') }}</option>
+                    <option value="manager">{{ __('team.roles.manager') }}</option>
+                    <option value="member">{{ __('team.roles.member') }}</option>
                 </flux:select>
 
                 <div class="flex justify-end gap-2 mt-4">
                     <flux:button variant="ghost" wire:click="$set('showInviteModal', false)">
-                        {{ __('İptal') }}
+                        {{ __('common.cancel') }}
                     </flux:button>
                     <flux:button variant="primary" type="submit">
-                        {{ __('Davet Gönder') }}
+                        {{ __('team.invite_button') }}
                     </flux:button>
                 </div>
             </form>

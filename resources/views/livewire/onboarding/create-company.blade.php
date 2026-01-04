@@ -25,15 +25,15 @@ new #[\Livewire\Attributes\Layout('components.layouts.auth.simple')] class exten
 }; ?>
 
 <div class="flex flex-col gap-6">
-    <x-auth-header :title="__('Firma Oluştur')" :description="__('Hesabınız için bir firma oluşturun')" />
+    <x-auth-header :title="__('onboarding.title')" :description="__('onboarding.description')" />
 
     <form wire:submit="createCompany" class="flex flex-col gap-6">
-        <flux:input wire:model="companyName" :label="__('Firma Adı')" type="text" required autofocus
-            placeholder="Örn: ABC Teknoloji Ltd." />
+        <flux:input wire:model="companyName" :label="__('onboarding.company_name')" type="text" required autofocus
+            :placeholder="__('onboarding.company_name_placeholder')" />
 
         <div class="flex items-center justify-end">
             <flux:button variant="primary" type="submit" class="w-full">
-                {{ __('Firma Oluştur') }}
+                {{ __('onboarding.create_button') }}
             </flux:button>
         </div>
     </form>

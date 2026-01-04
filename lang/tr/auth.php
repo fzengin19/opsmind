@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'login' => [
+        'title' => 'Hesabınıza giriş yapın',
+        'description' => 'Giriş yapmak için email ve şifrenizi girin',
+        'button' => 'Giriş Yap',
+        'remember' => 'Beni hatırla',
+        'forgot_password' => 'Şifrenizi mi unuttunuz?',
+        'no_account' => 'Hesabınız yok mu?',
+        'sign_up' => 'Kayıt Ol',
+        'with_google' => 'Google ile devam et',
+        'or' => 'veya',
+        'email' => 'Email adresi',
+        'password' => 'Şifre',
+    ],
+
+    'register' => [
+        'title' => 'Hesap Oluştur',
+        'description' => 'Hesabınızı oluşturmak için bilgilerinizi girin',
+        'button' => 'Hesap Oluştur',
+        'have_account' => 'Zaten hesabınız var mı?',
+        'sign_in' => 'Giriş Yap',
+        'name' => 'Ad Soyad',
+        'name_placeholder' => 'Adınız Soyadınız',
+        'email' => 'Email adresi',
+        'password' => 'Şifre',
+        'password_confirmation' => 'Şifre Tekrar',
+    ],
+
+    'password' => [
+        'forgot_title' => 'Şifremi Unuttum',
+        'forgot_description' => 'Şifre sıfırlama linki almak için email adresinizi girin',
+        'send_link' => 'Şifre sıfırlama linki gönder',
+        'or_return' => 'Veya, geri dön',
+        'reset_title' => 'Şifre Sıfırla',
+        'reset_description' => 'Lütfen yeni şifrenizi girin',
+        'reset_button' => 'Şifreyi Sıfırla',
+        'confirm_title' => 'Şifre Onayla',
+        'confirm_description' => 'Bu, uygulamanın güvenli bir alanıdır. Devam etmek için şifrenizi onaylayın.',
+        'confirm_button' => 'Onayla',
+    ],
+
+    'verify' => [
+        'title' => 'Email Doğrulama',
+        'description' => 'Lütfen size gönderdiğimiz linke tıklayarak email adresinizi doğrulayın.',
+        'resend' => 'Doğrulama emailini tekrar gönder',
+        'sent' => 'Kayıt sırasında verdiğiniz email adresine yeni bir doğrulama linki gönderildi.',
+    ],
+
+    '2fa' => [
+        'code_title' => 'Kimlik Doğrulama Kodu',
+        'code_description' => 'Authenticator uygulamanızın verdiği doğrulama kodunu girin.',
+        'recovery_title' => 'Kurtarma Kodu',
+        'recovery_description' => 'Hesabınıza erişimi onaylamak için acil durum kurtarma kodlarınızdan birini girin.',
+        'continue' => 'Devam',
+        'or_can' => 'veya',
+        'use_recovery' => 'kurtarma kodu ile giriş yapın',
+        'use_auth_code' => 'kimlik doğrulama kodu ile giriş yapın',
+    ],
+
+    'logout' => 'Çıkış Yap',
+];

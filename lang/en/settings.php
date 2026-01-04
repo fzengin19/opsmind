@@ -1,0 +1,72 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'title' => 'Settings',
+
+    'profile' => [
+        'title' => 'Profile',
+        'description' => 'Update your name and email address',
+        'name' => 'Name',
+        'email' => 'Email',
+        'unverified' => 'Your email address is unverified.',
+        'resend_verification' => 'Click here to re-send the verification email.',
+        'verification_sent' => 'A new verification link has been sent to your email address.',
+        'save' => 'Save',
+        'saved' => 'Saved.',
+    ],
+
+    'password' => [
+        'title' => 'Update password',
+        'description' => 'Ensure your account is using a long, random password to stay secure',
+        'current' => 'Current password',
+        'new' => 'New password',
+        'confirm' => 'Confirm Password',
+    ],
+
+    'appearance' => [
+        'title' => 'Appearance',
+        'description' => 'Update the appearance settings for your account',
+        'light' => 'Light',
+        'dark' => 'Dark',
+        'system' => 'System',
+    ],
+
+    'delete_account' => [
+        'title' => 'Delete account',
+        'description' => 'Once your account is deleted, all of its resources and data will also be permanently deleted.',
+        'button' => 'Delete account',
+        'confirm_title' => 'Are you sure you want to delete your account?',
+        'confirm_description' => 'This action cannot be undone. Please enter your password.',
+        'cancel' => 'Cancel',
+    ],
+
+    '2fa' => [
+        'title' => 'Two Factor Authentication',
+        'description' => 'Manage your two-factor authentication settings',
+        'enabled' => 'Enabled',
+        'disabled' => 'Disabled',
+        'enabled_message' => 'With two-factor authentication enabled, you will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.',
+        'disabled_message' => 'When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.',
+        'enable_button' => 'Enable 2FA',
+        'disable_button' => 'Disable 2FA',
+        'enabled_title' => 'Two-Factor Authentication Enabled',
+        'enabled_desc' => 'Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.',
+        'verify_title' => 'Verify Authentication Code',
+        'verify_desc' => 'Enter the 6-digit code from your authenticator app.',
+        'enable_title' => 'Enable Two-Factor Authentication',
+        'enable_desc' => 'To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app.',
+        'continue' => 'Continue',
+        'close' => 'Close',
+        'back' => 'Back',
+        'confirm' => 'Confirm',
+        'or_manual' => 'or, enter the code manually',
+        'recovery_codes' => '2FA Recovery Codes',
+        'recovery_desc' => 'Recovery codes let you regain access if you lose your 2FA device. Store them in a secure password manager.',
+        'view_codes' => 'View Recovery Codes',
+        'hide_codes' => 'Hide Recovery Codes',
+        'regenerate' => 'Regenerate Codes',
+        'recovery_usage' => 'Each recovery code can be used once to access your account and will be removed after use. If you need more, click Regenerate Codes above.',
+    ],
+];

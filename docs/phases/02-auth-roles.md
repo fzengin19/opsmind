@@ -1,8 +1,9 @@
-# Faz 2: Authentication & Role Management
+# Faz 2: Authentication & Role Management ✅
 
 **Süre:** 4 gün  
 **Önkoşul:** Faz 1 (Database & Models) ✅  
-**Çıktı:** Güvenli giriş sistemi, firma oluşturma, davet sistemi
+**Çıktı:** Güvenli giriş sistemi, firma oluşturma, davet sistemi  
+**Durum:** ✅ TAMAMLANDI
 
 ---
 
@@ -64,63 +65,17 @@ Login → hasCompany()=false → /onboarding/create-company →
 Firma adı gir → company_user pivot (owner) → /dashboard
 ```
 
-- [ ] `EnsureHasCompany` middleware
-- [ ] `/onboarding/create-company` Volt sayfası
-- [ ] `CreateCompanyAction`:
-  ```php
-  class CreateCompanyAction
-  {
-      public function execute(User $user, string $name): Company
-      {
-          $company = Company::create([
-              'name' => $name,
-              'slug' => Str::slug($name),
-          ]);
-          
-          $company->addUser($user, CompanyRole::Owner);
-          
-          return $company;
-      }
-  }
-  ```
+- [x] `EnsureHasCompany` middleware
+- [x] `/onboarding/create-company` Volt sayfası
+- [x] `CreateCompanyAction`
 
-### 2.3 Google OAuth (Socialite)
+### 2.3 Google OAuth (socialiteproviders/google) ✅
 
-- [ ] `composer require laravel/socialite`
-- [ ] `config/services.php` güncelle
-- [ ] `.env` güncelle:
-  ```env
-  GOOGLE_CLIENT_ID=xxx
-  GOOGLE_CLIENT_SECRET=xxx
-  GOOGLE_REDIRECT_URI=http://localhost/auth/google/callback
-  ```
-- [ ] `SocialiteController`:
-  ```php
-  public function callback(): RedirectResponse
-  {
-      $googleUser = Socialite::driver('google')->user();
-      
-      $user = User::firstOrCreate(
-          ['email' => $googleUser->email],
-          [
-              'name' => $googleUser->name,
-              'google_id' => $googleUser->id,
-              'avatar' => $googleUser->avatar,
-              'email_verified_at' => now(),
-          ]
-      );
-      
-      Auth::login($user);
-      
-      // Şirketi yoksa onboarding'e
-      if (!$user->hasCompany()) {
-          return redirect('/onboarding/create-company');
-      }
-      
-      return redirect('/dashboard');
-  }
-  ```
-- [ ] Login sayfasına Google butonu ekle
+- [x] `composer require socialiteproviders/google`
+- [x] `config/services.php` güncelle
+- [x] `AppServiceProvider` event listener
+- [x] `SocialiteController` (scopes + offline access)
+- [x] Login sayfasına Google butonu ekle
 
 ### 2.4 Kullanıcı Davet Sistemi
 
@@ -132,87 +87,30 @@ Kayıtlı: Login et + accept → Yeni: Register + accept →
 company_user pivot'a ekle → /dashboard
 ```
 
-- [ ] `invitations` migration:
-  ```php
-  Schema::create('invitations', function (Blueprint $table) {
-      $table->id();
-      $table->foreignId('company_id')->constrained()->cascadeOnDelete();
-      $table->string('email');
-      $table->string('role', 20); // CompanyRole enum value
-      $table->string('token', 64)->unique();
-      $table->timestamp('expires_at');
-      $table->timestamp('accepted_at')->nullable();
-      $table->foreignId('invited_by')->constrained('users');
-      $table->timestamps();
-      
-      $table->unique(['company_id', 'email']);
-  });
-  ```
+- [x] `invitations` migration
 
-- [ ] `Invitation` model
-- [ ] `InvitationData` DTO:
-  ```php
-  class InvitationData extends Data
-  {
-      public function __construct(
-          #[Required, Email]
-          public string $email,
-          #[Required]
-          public CompanyRole $role,
-      ) {}
-  }
-  ```
+- [x] `Invitation` model
+- [x] `InvitationData` DTO
+- [x] `SendInvitationAction`
+- [x] `AcceptInvitationAction`
+- [x] `InviteUserNotification`
+- [x] `/invitation/{token}` sayfası
 
-- [ ] `SendInvitationAction`
-- [ ] `AcceptInvitationAction`:
-  ```php
-  class AcceptInvitationAction
-  {
-      public function execute(Invitation $invitation, User $user): void
-      {
-          $invitation->company->addUser(
-              $user,
-              CompanyRole::from($invitation->role)
-          );
-          
-          $invitation->update(['accepted_at' => now()]);
-      }
-  }
-  ```
+### 2.5 Middleware ✅
 
-- [ ] `InviteUserNotification` (Markdown email)
-- [ ] `/invitation/{token}` sayfası
+- [x] `EnsureHasCompany` middleware
+- [x] `bootstrap/app.php` middleware kaydı
+- [x] Dashboard ve diğer authenticated route'lara uygulandı
 
-### 2.5 Middleware
+### 2.6 Takım Yönetimi Sayfası ✅
 
-- [ ] `EnsureHasCompany`:
-  ```php
-  class EnsureHasCompany
-  {
-      public function handle(Request $request, Closure $next): Response
-      {
-          if (auth()->check() && !auth()->user()->hasCompany()) {
-              return redirect('/onboarding/create-company');
-          }
-          
-          return $next($request);
-      }
-  }
-  ```
-
-- [ ] `bootstrap/app.php` middleware kaydı
-- [ ] Dashboard ve diğer authenticated route'lara uygula
-
-### 2.6 Takım Yönetimi Sayfası
-
-- [ ] `/team` Volt sayfası:
-  - Kullanıcı listesi (`$company->users()`)
-  - Davet modal (email + role)
-  - Rol değiştirme (pivot update)
-  - Üye çıkarma (`removeUser()`)
+- [x] `/team` Volt sayfası
+  - Kullanıcı listesi
+  - Davet modal
+  - Rol değiştirme
+  - Üye çıkarma
   - Pending davetler listesi
-
-- [ ] Yetki kontrolü: Sadece Owner/Admin erişebilir
+- [x] Yetki kontrolü: Sadece Owner/Admin erişebilir
 
 ---
 

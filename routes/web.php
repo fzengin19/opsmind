@@ -16,7 +16,7 @@ Route::get('/auth/google/callback', [SocialiteController::class, 'callback']);
 // Invitation accept (public route)
 Volt::route('/invitation/{token}', 'invitation.accept')->name('invitation.accept');
 
-Route::view('dashboard', 'dashboard')
+Volt::route('dashboard', 'dashboard')
     ->middleware(['auth', 'verified', 'ensure.has.company'])
     ->name('dashboard');
 

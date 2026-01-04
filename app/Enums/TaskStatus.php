@@ -33,4 +33,18 @@ enum TaskStatus: string
             self::Done => '#10b981',
         };
     }
+
+    /**
+     * Get Tailwind color name for Flux badge component.
+     */
+    public function badgeColor(): string
+    {
+        return match ($this) {
+            self::Backlog => 'zinc',
+            self::Todo => 'blue',
+            self::InProgress => 'amber',
+            self::Review => 'purple',
+            self::Done => 'green',
+        };
+    }
 }

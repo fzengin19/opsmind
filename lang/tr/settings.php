@@ -74,6 +74,7 @@ return [
         'title' => 'Roller & İzinler',
         'create_title' => 'Rol Oluştur',
         'edit_title' => 'Rol Düzenle',
+        'form_description' => 'Rol adını ve izinlerini yapılandırın',
         'description' => 'Rolleri ve izinleri yönetin',
         'button_create' => 'Rol Oluştur',
         'table_name' => 'Rol Adı',

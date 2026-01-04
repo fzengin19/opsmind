@@ -88,56 +88,53 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div>
-    <div class="mb-6">
-        <flux:heading size="xl">{{ $role ? __('settings.roles.edit_title') : __('settings.roles.create_title') }}
-        </flux:heading>
-    </div>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <form wire:submit="save">
-                <div
-                    class="bg-white dark:bg-zinc-800 shadow-sm sm:rounded-lg border border-zinc-200 dark:border-zinc-700 p-6 space-y-6">
-
-                    <flux:field>
-                        <flux:label>{{ __('settings.roles.field_name') }}</flux:label>
-                        <flux:input wire:model="name" type="text" />
-                        <flux:error name="name" />
-                    </flux:field>
-
-                    <flux:separator />
-
-                    <div class="space-y-6">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                            {{ __('settings.roles.permissions_title') }}</h3>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            @foreach($groupedPermissions as $group => $permissions)
-                                <div
-                                    class="bg-gray-50 dark:bg-zinc-900 p-4 rounded-lg border border-gray-200 dark:border-zinc-700">
-                                    <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-3">{{ $group }}</h4>
-                                    <div class="space-y-2">
-                                        @foreach($permissions as $permission)
-                                            <flux:checkbox wire:model="selectedPermissions" value="{{ $permission['id'] }}"
-                                                label="{{ $permission['label'] }}" />
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-end space-x-4">
-                        <div class="flex items-center justify-end space-x-4">
-                            <flux:button href="{{ route('settings.roles.index') }}" wire:navigate>
-                                {{ __('settings.roles.cancel') }}
-                            </flux:button>
-                            <flux:button type="submit" variant="primary">{{ __('settings.roles.save') }}</flux:button>
-                        </div>
-
-                    </div>
-            </form>
+<div class="flex flex-col gap-6">
+    <!-- Page Header -->
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <flux:heading size="xl">{{ $role ? __('settings.roles.edit_title') : __('settings.roles.create_title') }}</flux:heading>
+            <flux:subheading>{{ __('settings.roles.form_description') }}</flux:subheading>
         </div>
     </div>
+
+    <!-- Form Card -->
+    <form wire:submit="save">
+        <div class="p-4 sm:p-6 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm space-y-6">
+
+            <flux:field>
+                <flux:label>{{ __('settings.roles.field_name') }}</flux:label>
+                <flux:input wire:model="name" type="text" />
+                <flux:error name="name" />
+            </flux:field>
+
+            <flux:separator />
+
+            <div class="space-y-4">
+                <h3 class="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+                    {{ __('settings.roles.permissions_title') }}
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @foreach($groupedPermissions as $group => $permissions)
+                        <div class="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-700">
+                            <h4 class="font-medium text-zinc-700 dark:text-zinc-300 mb-3">{{ $group }}</h4>
+                            <div class="space-y-2">
+                                @foreach($permissions as $permission)
+                                    <flux:checkbox wire:model="selectedPermissions" value="{{ $permission['id'] }}"
+                                        label="{{ $permission['label'] }}" />
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4">
+                <flux:button href="{{ route('settings.roles.index') }}" wire:navigate>
+                    {{ __('settings.roles.cancel') }}
+                </flux:button>
+                <flux:button type="submit" variant="primary">{{ __('settings.roles.save') }}</flux:button>
+            </div>
+        </div>
+    </form>
 </div>

@@ -74,6 +74,7 @@ return [
         'title' => 'Roles & Permissions',
         'create_title' => 'Create Role',
         'edit_title' => 'Edit Role',
+        'form_description' => 'Configure role name and permissions',
         'description' => 'Manage roles and permissions',
         'button_create' => 'Create Role',
         'table_name' => 'Role Name',

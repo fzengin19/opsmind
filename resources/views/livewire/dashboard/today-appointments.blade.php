@@ -38,7 +38,7 @@ new #[Lazy] class extends Component {
 
 <div class="bg-white dark:bg-zinc-800 rounded-xl p-6 shadow-sm border border-zinc-200 dark:border-zinc-700">
     <flux:heading size="sm" class="mb-4 flex items-center gap-2">
-        <flux:icon name="calendar" class="size-5 text-brand-500" />
+        <flux:icon name="calendar" class="size-5 text-primary-500" />
         {{ __('dashboard.today_appointments') }}
     </flux:heading>
 

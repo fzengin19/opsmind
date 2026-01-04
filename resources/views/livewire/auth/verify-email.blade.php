@@ -5,7 +5,7 @@
         </flux:text>
 
         @if (session('status') == 'verification-link-sent')
-            <flux:text class="text-center font-medium !dark:text-green-400 !text-green-600">
+            <flux:text class="text-center font-medium text-success">
                 {{ __('auth.verify.sent') }}
             </flux:text>
         @endif

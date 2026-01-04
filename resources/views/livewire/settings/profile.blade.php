@@ -73,13 +73,15 @@ new class extends Component {
     @include('partials.settings-heading')
 
     <x-settings.layout :heading="__('settings.profile.title')" :subheading="__('settings.profile.description')">
-        <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
-            <flux:input wire:model="name" :label="__('settings.profile.name')" type="text" required autofocus autocomplete="name" />
+        <form wire:submit="updateProfileInformation" class="w-full space-y-6">
+            <flux:input wire:model="name" :label="__('settings.profile.name')" type="text" required autofocus
+                autocomplete="name" />
 
             <div>
-                <flux:input wire:model="email" :label="__('settings.profile.email')" type="email" required autocomplete="email" />
+                <flux:input wire:model="email" :label="__('settings.profile.email')" type="email" required
+                    autocomplete="email" />
 
-                @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail &&! auth()->user()->hasVerifiedEmail())
+                @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !auth()->user()->hasVerifiedEmail())
                     <div>
                         <flux:text class="mt-4">
                             {{ __('settings.profile.unverified') }}
@@ -90,7 +92,7 @@ new class extends Component {
                         </flux:text>
 
                         @if (session('status') === 'verification-link-sent')
-                            <flux:text class="mt-2 font-medium !dark:text-green-400 !text-green-600">
+                            <flux:text class="mt-2 font-medium text-success">
                                 {{ __('settings.profile.verification_sent') }}
                             </flux:text>
                         @endif
@@ -98,12 +100,10 @@ new class extends Component {
                 @endif
             </div>
 
-            <div class="flex items-center gap-4">
-                <div class="flex items-center justify-end">
-                    <flux:button variant="primary" type="submit" class="w-full" data-test="update-profile-button">
-                        {{ __('settings.profile.save') }}
-                    </flux:button>
-                </div>
+            <div class="flex items-center justify-between gap-4">
+                <flux:button variant="primary" type="submit" data-test="update-profile-button">
+                    {{ __('settings.profile.save') }}
+                </flux:button>
 
                 <x-action-message class="me-3" on="profile-updated">
                     {{ __('settings.profile.saved') }}

@@ -22,7 +22,7 @@ new class extends Component {
     }
 }; ?>
 
-<section class="mt-10 space-y-6">
+<section class="mt-8 space-y-6">
     <div class="relative mb-5">
         <flux:heading>{{ __('settings.delete_account.title') }}</flux:heading>
         <flux:subheading>{{ __('settings.delete_account.description') }}</flux:subheading>
@@ -47,9 +47,9 @@ new class extends Component {
 
             <flux:input wire:model="password" :label="__('auth.login.password')" type="password" />
 
-            <div class="flex justify-end space-x-2 rtl:space-x-reverse">
+            <div class="flex justify-end gap-2">
                 <flux:modal.close>
-                    <flux:button variant="filled">{{ __('settings.delete_account.cancel') }}</flux:button>
+                    <flux:button variant="ghost">{{ __('settings.delete_account.cancel') }}</flux:button>
                 </flux:modal.close>
 
                 <flux:button variant="danger" type="submit" data-test="confirm-delete-user-button">

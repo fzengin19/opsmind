@@ -22,15 +22,15 @@ class PermissionService
             // Permission naming convention: group.action (e.g., user.create)
             $parts = explode('.', $permission->name);
             $groupKey = $parts[0] ?? 'other';
-            
+
             // Map group key to readable title
             $groupTitle = match ($groupKey) {
-                'company' => __('Roles & Permissions'), // Reusing valid translation or generic? Let's use custom titles.
-                'user' => __('Users'),
-                'contact' => __('Contacts'),
-                'appointment' => __('Calendar'),
-                'task' => __('Tasks'),
-                'role' => __('Roles'),
+                'company' => __('settings.roles.group_names.company'),
+                'user' => __('settings.roles.group_names.user'),
+                'contact' => __('settings.roles.group_names.contact'),
+                'appointment' => __('settings.roles.group_names.appointment'),
+                'task' => __('settings.roles.group_names.task'),
+                'role' => __('settings.roles.group_names.role'),
                 default => ucfirst($groupKey),
             };
 
@@ -41,7 +41,7 @@ class PermissionService
 
             $grouped[$groupTitle][] = [
                 'id' => $permission->name,
-                'label' => __('permissions.' . $permission->name),
+                'label' => __('permissions.'.$permission->name),
             ];
         }
 

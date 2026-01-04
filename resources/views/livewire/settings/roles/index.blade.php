@@ -29,11 +29,11 @@ new #[Layout('components.layouts.app')] class extends Component {
         Gate::authorize('role.delete');
 
         if (strtolower($role->name) === 'owner') {
-            abort(403, 'Owner role cannot be deleted.');
+            abort(403, __('settings.roles.error_owner_delete'));
         }
 
         if ($role->users()->count() > 0) {
-            $this->dispatch('notify', variant: 'danger', message: 'Cannot delete role with active members.');
+            $this->dispatch('notify', variant: 'danger', message: __('settings.roles.error_has_members'));
             return;
         }
 
@@ -47,17 +47,17 @@ new #[Layout('components.layouts.app')] class extends Component {
         // Clear cache
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $this->dispatch('notify', variant: 'success', message: 'Role deleted successfully.');
+        $this->dispatch('notify', variant: 'success', message: __('settings.roles.delete_success'));
     }
 }; ?>
 
 <div>
     <div class="flex items-center justify-between mb-6">
-        <flux:heading size="xl">{{ __('Roles & Permissions') }}</flux:heading>
+        <flux:heading size="xl">{{ __('settings.roles.title') }}</flux:heading>
 
         @can('role.create')
             <flux:button variant="primary" href="{{ route('settings.roles.create') }}" wire:navigate>
-                {{ __('Create Role') }}
+                {{ __('settings.roles.button_create') }}
             </flux:button>
         @endcan
     </div>
@@ -72,15 +72,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <tr>
                                 <th scope="col"
                                     class="px-6 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                                    {{ __('Role Name') }}
+                                    {{ __('settings.roles.table_name') }}
                                 </th>
                                 <th scope="col"
                                     class="px-6 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                                    {{ __('Members') }}
+                                    {{ __('settings.roles.table_members') }}
                                 </th>
                                 <th scope="col"
                                     class="px-6 py-3 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                                    {{ __('Actions') }}
+                                    {{ __('settings.roles.table_actions') }}
                                 </th>
                             </tr>
                         </thead>
@@ -91,7 +91,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                         {{ $role->name }}
                                         @if(strtolower($role->name) === 'owner')
-                                            <flux:badge size="sm" color="zinc" class="ml-2">{{ __('System') }}</flux:badge>
+                                            <flux:badge size="sm" color="zinc" class="ml-2">{{ __('settings.roles.system_role') }}</flux:badge>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 dark:text-zinc-400">
@@ -106,12 +106,12 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 @endcan
 
                                                 @can('role.delete')
-                                                    <flux:button size="sm" variant="danger" icon="trash"
+                                                <flux:button size="sm" variant="danger" icon="trash"
                                                         wire:click="delete({{ $role->id }})"
-                                                        wire:confirm="{{ __('Are you sure you want to delete this role?') }}" />
+                                                        wire:confirm="{{ __('settings.roles.delete_confirm_title') }}" />
                                                 @endcan
                                             @else
-                                                <span class="text-zinc-400 text-sm italic">{{ __('Protected') }}</span>
+                                                <span class="text-zinc-400 text-sm italic">{{ __('settings.roles.protected_role') }}</span>
                                             @endif
                                         </div>
                                     </td>

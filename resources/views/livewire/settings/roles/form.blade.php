@@ -84,13 +84,14 @@ new #[Layout('components.layouts.app')] class extends Component {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         return redirect()->route('settings.roles.index')
-            ->with('notify', ['variant' => 'success', 'message' => 'Role saved successfully.']);
+            ->with('notify', ['variant' => 'success', 'message' => __('settings.roles.save_success')]);
     }
 }; ?>
 
 <div>
     <div class="mb-6">
-        <flux:heading size="xl">{{ $role ? __('Edit Role') : __('Create Role') }}</flux:heading>
+        <flux:heading size="xl">{{ $role ? __('settings.roles.edit_title') : __('settings.roles.create_title') }}
+        </flux:heading>
     </div>
 
     <div class="py-12">
@@ -100,7 +101,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     class="bg-white dark:bg-zinc-800 shadow-sm sm:rounded-lg border border-zinc-200 dark:border-zinc-700 p-6 space-y-6">
 
                     <flux:field>
-                        <flux:label>{{ __('Role Name') }}</flux:label>
+                        <flux:label>{{ __('settings.roles.field_name') }}</flux:label>
                         <flux:input wire:model="name" type="text" />
                         <flux:error name="name" />
                     </flux:field>
@@ -108,7 +109,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <flux:separator />
 
                     <div class="space-y-6">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">{{ __('Permissions') }}</h3>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                            {{ __('settings.roles.permissions_title') }}</h3>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             @foreach($groupedPermissions as $group => $permissions)
@@ -127,12 +129,14 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
 
                     <div class="flex items-center justify-end space-x-4">
-                        <flux:button href="{{ route('settings.roles.index') }}" wire:navigate>{{ __('Cancel') }}
-                        </flux:button>
-                        <flux:button type="submit" variant="primary">{{ __('Save Role') }}</flux:button>
-                    </div>
+                        <div class="flex items-center justify-end space-x-4">
+                            <flux:button href="{{ route('settings.roles.index') }}" wire:navigate>
+                                {{ __('settings.roles.cancel') }}
+                            </flux:button>
+                            <flux:button type="submit" variant="primary">{{ __('settings.roles.save') }}</flux:button>
+                        </div>
 
-                </div>
+                    </div>
             </form>
         </div>
     </div>

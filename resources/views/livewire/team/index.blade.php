@@ -7,17 +7,18 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
 use Spatie\Permission\Models\Role;
+use Illuminate\Validation\Rule;
 
 new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Component {
     public string $inviteEmail = '';
-    public string $inviteRole = 'member';
+    public string $inviteRole = '';
     public bool $showInviteModal = false;
 
     public function rules(): array
     {
         return [
             'inviteEmail' => ['required', 'email'],
-            'inviteRole' => ['required', 'in:admin,member'],
+            'inviteRole' => ['required', Rule::in($this->availableRoles)],
         ];
     }
 
@@ -76,7 +77,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
         $action->execute($this->company, Auth::user(), $data);
 
         $this->inviteEmail = '';
-        $this->inviteRole = 'member';
+        $this->inviteRole = $this->availableRoles->first() ?? '';
         $this->showInviteModal = false;
 
         $this->dispatch('invitation-sent');
@@ -175,7 +176,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
                     setPermissionsTeamId($this->company->id);
                     $userRole = $user->roles->first();
                     $roleName = $userRole?->name ?? 'member';
-                    $roleColor = match($roleName) {
+                    $roleColor = match ($roleName) {
                         'owner' => 'red',
                         'admin' => 'amber',
                         default => 'zinc',
@@ -195,12 +196,11 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
                             <flux:dropdown>
                                 <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" />
                                 <flux:menu>
-                                    <flux:menu.item wire:click="updateRole({{ $user->id }}, 'admin')">
-                                        {{ __('team.make_admin') }}
-                                    </flux:menu.item>
-                                    <flux:menu.item wire:click="updateRole({{ $user->id }}, 'member')">
-                                        {{ __('team.make_member') }}
-                                    </flux:menu.item>
+                                    @foreach($this->availableRoles as $availableRole)
+                                        <flux:menu.item wire:click="updateRole({{ $user->id }}, '{{ $availableRole }}')">
+                                            {{ ucfirst($availableRole) }}
+                                        </flux:menu.item>
+                                    @endforeach
                                     <flux:menu.separator />
                                     <flux:menu.item variant="danger" wire:click="removeUser({{ $user->id }})"
                                         wire:confirm="{{ __('team.remove_confirm') }}">
@@ -245,7 +245,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
                             setPermissionsTeamId($this->company->id);
                             $userRole = $user->roles->first();
                             $roleName = $userRole?->name ?? 'member';
-                            $roleColor = match($roleName) {
+                            $roleColor = match ($roleName) {
                                 'owner' => 'red',
                                 'admin' => 'amber',
                                 default => 'zinc',
@@ -273,12 +273,11 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
                                         <flux:dropdown>
                                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" />
                                             <flux:menu>
-                                                <flux:menu.item wire:click="updateRole({{ $user->id }}, 'admin')">
-                                                    {{ __('team.make_admin') }}
-                                                </flux:menu.item>
-                                                <flux:menu.item wire:click="updateRole({{ $user->id }}, 'member')">
-                                                    {{ __('team.make_member') }}
-                                                </flux:menu.item>
+                                                @foreach($this->availableRoles as $availableRole)
+                                                    <flux:menu.item wire:click="updateRole({{ $user->id }}, '{{ $availableRole }}')">
+                                                        {{ ucfirst($availableRole) }}
+                                                    </flux:menu.item>
+                                                @endforeach
                                                 <flux:menu.separator />
                                                 <flux:menu.item variant="danger" wire:click="removeUser({{ $user->id }})"
                                                     wire:confirm="{{ __('team.remove_confirm') }}">
@@ -372,8 +371,9 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
                     :placeholder="__('team.invite_email_placeholder')" />
 
                 <flux:select wire:model="inviteRole" :label="__('team.invite_role')">
-                    <option value="admin">{{ __('team.roles.admin') }}</option>
-                    <option value="member">{{ __('team.roles.member') }}</option>
+                    @foreach($this->availableRoles as $role)
+                        <option value="{{ $role }}">{{ ucfirst($role) }}</option>
+                    @endforeach
                 </flux:select>
 
                 <div class="flex justify-end gap-2 mt-4">

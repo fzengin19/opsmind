@@ -19,7 +19,7 @@ class CreateCompanyAction
     {
         $company = Company::create([
             'name' => $name,
-            'slug' => Str::slug($name) . '-' . Str::random(6),
+            'slug' => Str::slug($name).'-'.Str::random(6),
             'timezone' => $user->timezone ?? 'Europe/Istanbul',
             'settings' => [
                 'language' => 'tr',

@@ -25,24 +25,24 @@ class NavigationService
     private function getManagementLinks(): array
     {
         $links = [];
-        
+
         // Team Management
         if (auth()->user()->can('viewAny', User::class)) {
             $links[] = [
-                 'label' => __('team.title'),
-                 'route' => 'team.index',
-                 'icon' => 'users',
-                 'active' => request()->routeIs('team.*'),
+                'label' => __('team.title'),
+                'route' => 'team.index',
+                'icon' => 'users',
+                'active' => request()->routeIs('team.*'),
             ];
         }
 
         // Role Management
         if (auth()->user()->can('role.view')) {
             $links[] = [
-                 'label' => __('navigation.roles'),
-                 'route' => 'settings.roles.index',
-                 'icon' => 'shield-check',
-                 'active' => request()->routeIs('settings.roles.*'),
+                'label' => __('navigation.roles'),
+                'route' => 'settings.roles.index',
+                'icon' => 'shield-check',
+                'active' => request()->routeIs('settings.roles.*'),
             ];
         }
 

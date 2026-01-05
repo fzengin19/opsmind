@@ -9,6 +9,9 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+// Temp Calendar Route
+Volt::route('/calendar-test', 'calendar.index')->name('calendar.test');
+
 // Google OAuth routes
 Route::get('/auth/google', [SocialiteController::class, 'redirect'])->name('auth.google');
 Route::get('/auth/google/callback', [SocialiteController::class, 'callback']);

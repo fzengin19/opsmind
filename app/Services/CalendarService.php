@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\AppointmentType;
+use App\Models\Appointment;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -67,7 +69,81 @@ class CalendarService
         for ($hour = $startHour; $hour <= $endHour; $hour++) {
             $slots[] = sprintf('%02d:00', $hour);
         }
+
         return $slots;
+    }
+
+    /**
+     * Get appointments for a specific week
+     */
+    public function getAppointmentsForWeek(Carbon $date, int $companyId): Collection
+    {
+        $weekStart = $date->copy()->startOfWeek(Carbon::MONDAY);
+        $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+
+        return Appointment::where('company_id', $companyId)
+            ->whereBetween('start_at', [$weekStart, $weekEnd])
+            ->orderBy('start_at')
+            ->get()
+            ->map(function ($apt) use ($weekStart) {
+                $dayIndex = (int) $weekStart->diffInDays($apt->start_at);
+
+
+                return [
+                    'id' => $apt->id,
+                    'title' => $apt->title,
+                    'dayIndex' => $dayIndex,
+                    'startHour' => $apt->start_at->hour,
+                    'startMinute' => $apt->start_at->minute,
+                    'durationMinutes' => $apt->start_at->diffInMinutes($apt->end_at),
+                    'color' => $this->mapTypeToColor($apt->type),
+                    'type' => $apt->type->value,
+                ];
+            });
+    }
+
+    /**
+     * Get appointments for a specific month (grouped by date)
+     */
+    public function getAppointmentsForMonth(Carbon $date, int $companyId): array
+    {
+        $startOfMonth = $date->copy()->startOfMonth()->startOfWeek(Carbon::MONDAY);
+        $endOfMonth = $date->copy()->endOfMonth()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+
+        $appointments = Appointment::where('company_id', $companyId)
+            ->whereBetween('start_at', [$startOfMonth, $endOfMonth])
+            ->orderBy('start_at')
+            ->get();
+
+        $grouped = [];
+        foreach ($appointments as $apt) {
+            $dateKey = $apt->start_at->toDateString(); // Y-m-d
+            if (!isset($grouped[$dateKey])) {
+                $grouped[$dateKey] = [];
+            }
+            $grouped[$dateKey][] = [
+                'id' => $apt->id,
+                'title' => $apt->title,
+                'time' => $apt->start_at->format('H:i'),
+                'color' => $this->mapTypeToColor($apt->type),
+            ];
+        }
+
+        return $grouped;
+    }
+
+
+    /**
+     * Map AppointmentType to calendar color
+     */
+    private function mapTypeToColor(AppointmentType $type): string
+    {
+        return match ($type) {
+            AppointmentType::Meeting => 'primary',
+            AppointmentType::Call => 'success',
+            AppointmentType::Focus => 'warning',
+            AppointmentType::Break => 'zinc',
+        };
     }
 
     /**
@@ -78,16 +154,17 @@ class CalendarService
     {
         $startMinutes = ($eventStart->hour * 60) + $eventStart->minute;
         $endMinutes = ($eventEnd->hour * 60) + $eventEnd->minute;
-        
+
         // Offset from the calendar start time
         $offsetMinutes = $startMinutes - ($startHour * 60);
-        
+
         // 1 hour = 60px (assumption for now)
-        $pixelsPerMinute = 1; 
+        $pixelsPerMinute = 1;
 
         return [
-            'top' => ($offsetMinutes * $pixelsPerMinute) . 'px',
-            'height' => max(30, ($endMinutes - $startMinutes) * $pixelsPerMinute) . 'px',
+            'top' => ($offsetMinutes * $pixelsPerMinute).'px',
+            'height' => max(30, ($endMinutes - $startMinutes) * $pixelsPerMinute).'px',
         ];
     }
 }
+

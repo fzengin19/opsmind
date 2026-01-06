@@ -1,6 +1,6 @@
 # OpsMind MVP - Phase Documentation
 
-Bu klasör OpsMind MVP'nin 10 fazını detaylı olarak içerir.
+Bu klasör OpsMind MVP'nin 11 fazını detaylı olarak içerir.
 
 ## Fazlar
 
@@ -10,7 +10,8 @@ Bu klasör OpsMind MVP'nin 10 fazını detaylı olarak içerir.
 | 02 | [Auth & Roles](02-auth-roles.md) | 4 gün | ✅ |
 | 02.1 | [Spatie Teams Refactor](02.1-spatie-teams-refactor.md) | 2 gün | ⬜ |
 | 03 | [Dashboard Skeleton](03-dashboard-skeleton.md) | 2 gün | ⬜ |
-| 04 | [Calendar UI](04-calendar-ui.md) | 4 gün | ⬜ |
+| 04 | [Calendar UI](04-calendar-ui.md) | 4 gün | 🟡 |
+| **04.5** | **[Calendar Entity](04.5-calendar-entity.md)** | **1-2 gün** | ⬜ |
 | 05 | [Appointment CRUD](05-appointment-crud.md) | 3 gün | ⬜ |
 | 06 | [Google Calendar Sync](06-google-calendar-sync.md) | 4 gün | ⬜ |
 | 07 | [Contact Management](07-contact-management.md) | 4 gün | ⬜ |
@@ -18,7 +19,8 @@ Bu klasör OpsMind MVP'nin 10 fazını detaylı olarak içerir.
 | 09 | [Notifications](09-notifications.md) | 3 gün | ⬜ |
 | 10 | [Polish & Testing](10-polish-testing.md) | 4 gün | ⬜ |
 
-**Toplam:** ~38 iş günü (8 hafta)
+**Toplam:** ~40 iş günü (8-9 hafta)
+
 
 ## Durum Açıklamaları
 
@@ -76,6 +78,8 @@ Route::prefix('v1')->group(base_path('routes/api/v1/tasks.php'));
 | Kavram | Model Adı | Neden? |
 |--------|-----------|--------|
 | Takvim randevusu | `Appointment` | `Event` Laravel'de rezerve |
+| Takvim (container) | `Calendar` | Çoklu takvim desteği |
 | Yapılacak iş | `Task` | `Job` queue ile çakışır |
 | Kişi/Müşteri | `Contact` | `User` login ile karışır |
 | Dosyalar | `Document` | `File` PHP core ile çakışır |
+

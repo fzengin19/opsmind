@@ -70,43 +70,25 @@ new #[Layout('components.layouts.app')] class extends Component {
             ? $service->getTimeSlots()
             : [];
 
-        // Dummy events for testing
+        $company = auth()->user()?->currentCompany();
+        
+        // Get appointments from database
         $events = [];
-        if (in_array($this->view, ['week', 'day'])) {
-
-            $events = [
-                [
-                    'id' => 1,
-                    'title' => 'Ofis Toplantısı',
-                    'dayIndex' => 0,
-                    'startHour' => 9,
-                    'startMinute' => 30,
-                    'durationMinutes' => 90,
-                    'color' => 'primary',
-                ],
-                [
-                    'id' => 2,
-                    'title' => 'Müşteri Görüşmesi',
-                    'dayIndex' => 2,
-                    'startHour' => 14,
-                    'startMinute' => 0,
-                    'durationMinutes' => 60,
-                    'color' => 'success',
-                ],
-                [
-                    'id' => 3,
-                    'title' => 'Proje Sunumu',
-                    'dayIndex' => 4,
-                    'startHour' => 11,
-                    'startMinute' => 0,
-                    'durationMinutes' => 120,
-                    'color' => 'warning',
-                ],
-            ];
+        $monthEvents = [];
+        
+        if ($company) {
+            if (in_array($this->view, ['week', 'day'])) {
+                $events = $service->getAppointmentsForWeek($this->currentDate, $company->id)->toArray();
+            }
+            if ($this->view === 'month') {
+                $monthEvents = $service->getAppointmentsForMonth($this->currentDate, $company->id);
+            }
         }
 
-        return compact('days', 'timeSlots', 'events');
+        return compact('days', 'timeSlots', 'events', 'monthEvents');
     }
+
+
 
 
 }; ?>
@@ -189,12 +171,46 @@ new #[Layout('components.layouts.app')] class extends Component {
                             {{ $day['day'] }}
                         </span>
 
+                        {{-- Event Chips --}}
+                        @php
+                            $dateKey = $day['date']->toDateString();
+                            $dayEvents = $monthEvents[$dateKey] ?? [];
+                        @endphp
+                        @if(count($dayEvents) > 0)
+                            <div class="mt-1 space-y-0.5">
+                                @foreach(array_slice($dayEvents, 0, 3) as $event)
+                                    <div class="text-[10px] truncate px-1 py-0.5 rounded cursor-pointer transition
+                                        @switch($event['color'])
+                                            @case('primary')
+                                                bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300
+                                                @break
+                                            @case('success')
+                                                bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300
+                                                @break
+                                            @case('warning')
+                                                bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300
+                                                @break
+                                            @default
+                                                bg-zinc-100 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300
+                                        @endswitch">
+                                        {{ $event['title'] }}
+                                    </div>
+                                @endforeach
+                                @if(count($dayEvents) > 3)
+                                    <div class="text-[10px] text-zinc-500 dark:text-zinc-400 px-1">
+                                        +{{ count($dayEvents) - 3 }} daha
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+
                     </div>
+
                 @endforeach
             </div>
         @elseif($view === 'week')
             {{-- Week View Container (single scroll container) --}}
-            <div class="h-[500px] sm:h-[600px] lg:h-[750px] overflow-y-auto">
+            <div class="h-[500px] sm:h-[600px] lg:h-[750px] overflow-y-auto" x-init="$el.scrollTop = 8 * 60">
                 
                 {{-- Header Row (sticky inside scroll container) --}}
                 <div class="flex sticky top-0 z-30 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900">
@@ -277,7 +293,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         @elseif($view === 'day')
             {{-- Day View Container (single scroll container) --}}
-            <div class="h-[500px] sm:h-[600px] lg:h-[750px] overflow-y-auto">
+            <div class="h-[500px] sm:h-[600px] lg:h-[750px] overflow-y-auto" x-init="$el.scrollTop = 8 * 60">
                 
                 {{-- Header Row (sticky) --}}
                 <div class="flex sticky top-0 z-30 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900">

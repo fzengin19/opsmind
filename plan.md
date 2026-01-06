@@ -6,7 +6,7 @@ Sadece %23 şirket proje yönetimi yazılımı kullanıyor - büyük fırsat
 %82 şirket iş yönetimi yazılımı kullanıyor
 AI destekli PM araçları pazarı 2024'te $3.08 milyar, 2029'da $7.4 milyar olacak (%19.9 CAGR)
 KOBİ'ler büyük şirketlerden %13 daha fazla PM araçları benimsiyor
-
+                    
 KOBİ Zorlukları:
 
 Yetenekleri çekme ve tutma

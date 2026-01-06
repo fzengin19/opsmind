@@ -53,4 +53,9 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('team', 'team.index')
         ->middleware(['ensure.has.company'])
         ->name('team.index');
+
+    // Calendar (requires company)
+    Volt::route('calendar', 'calendar.index')
+        ->middleware(['ensure.has.company'])
+        ->name('calendar.index');
 });

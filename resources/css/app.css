@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
+@import '@toast-ui/calendar/dist/toastui-calendar.min.css';
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -116,4 +117,42 @@ input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+}
+
+/* ===== TOAST UI Calendar Overrides ===== */
+/* Note: Container height is set via inline style in Blade */
+
+/* Hide allday panel (empty row below day headers) */
+.toastui-calendar-panel.toastui-calendar-allday {
+    display: none !important;
+}
+
+/* Force time panel to fill available space */
+.toastui-calendar-panel.toastui-calendar-time {
+    height: 100% !important;
+    min-height: 500px !important;
+}
+
+.dark .toastui-calendar-layout {
+    background-color: var(--color-zinc-900);
+}
+
+.dark .toastui-calendar-grid-cell,
+.dark .toastui-calendar-timegrid-gridline,
+.dark .toastui-calendar-day-names {
+    border-color: var(--color-zinc-800) !important;
+}
+
+.dark .toastui-calendar-day-name-item {
+    color: var(--color-zinc-400) !important;
+}
+
+.dark .toastui-calendar-timegrid-time-label {
+    color: var(--color-zinc-500) !important;
+}
+
+.dark .toastui-calendar-popup-container {
+    background-color: var(--color-zinc-800);
+    border-color: var(--color-zinc-700);
+    color: var(--color-zinc-200);
 }

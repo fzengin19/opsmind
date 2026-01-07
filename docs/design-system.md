@@ -141,6 +141,7 @@ Flux Heading component'leri kullanılacak, manuel `h1`, `h2` etiketleri yasaktı
 
 ---
 
+
 ## 5. Özel Kurallar ve Yasaklar
 
 1.  **Strict Neutrality:** `text-gray-*` kullanımı kesinlikle yasaktır. Kodda `grep` ile aranıp `text-zinc-*` yapılmalıdır.

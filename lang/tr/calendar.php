@@ -3,30 +3,37 @@
 declare(strict_types=1);
 
 return [
+    // Page Title
     'title' => 'Takvim',
-    'subheading' => 'Randevularınızı ve etkinliklerinizi yönetin',
-    'view_modes' => [
-        'month' => 'Ay',
-        'week' => 'Hafta',
-        'day' => 'Gün',
-        'agenda' => 'Ajanda',
+
+    // View Switcher
+    'today' => 'Bugün',
+    'month' => 'Ay',
+    'week' => 'Hafta',
+    'day' => 'Gün',
+
+    // Day Names (Short)
+    'days_short' => [
+        'mon' => 'Pzt',
+        'tue' => 'Sal',
+        'wed' => 'Çar',
+        'thu' => 'Per',
+        'fri' => 'Cum',
+        'sat' => 'Cmt',
+        'sun' => 'Paz',
     ],
-    'buttons' => [
-        'today' => 'Bugün',
-        'prev' => 'Önceki',
-        'next' => 'Sonraki',
+
+    // Day Names (Full) - for future use
+    'days_full' => [
+        'mon' => 'Pazartesi',
+        'tue' => 'Salı',
+        'wed' => 'Çarşamba',
+        'thu' => 'Perşembe',
+        'fri' => 'Cuma',
+        'sat' => 'Cumartesi',
+        'sun' => 'Pazar',
     ],
-    'messages' => [
-        'no_events' => 'Bu tarih aralığında planlanmış etkinlik yok.',
-    ],
-    'labels' => [
-        'new_event' => 'Yeni Etkinlik',
-        'title' => 'Başlık',
-        'start' => 'Başlangıç',
-        'end' => 'Bitiş',
-        'description' => 'Açıklama',
-        'location' => 'Konum',
-        'type' => 'Tür',
-        'all_day' => 'Tüm gün',
-    ],
+
+    // Event display
+    'more' => 'daha',
 ];

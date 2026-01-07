@@ -1,189 +1,383 @@
 <?php
 
-use App\Models\Appointment;
-use Carbon\Carbon;
-use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
+use Carbon\Carbon;
+use App\Services\CalendarService;
 
-new #[Layout('components.layouts.app')] class extends Component
-{
-    public string $currentView = 'week';
+
+new #[Layout('components.layouts.app')] class extends Component {
+    #[Url]
+    public string $view = 'month';
+
+    #[Url]
+    public string $date = '';
 
     public function mount(): void
     {
-        // Could load user preference here
+        if (empty($this->date)) {
+            $this->date = now()->toDateString();
+        }
     }
 
-    /**
-     * Fetch events for a specific date range.
-     * Called by Alpine.js via $wire.fetchEvents().
-     */
-    public function fetchEvents(string $startStr, string $endStr): array
+    public function getCurrentDateProperty(): Carbon
     {
-        $user = auth()->user();
-        $tz = $user->timezone ?? 'UTC';
-
-        $start = Carbon::parse($startStr)->setTimezone('UTC');
-        $end = Carbon::parse($endStr)->setTimezone('UTC');
-
-        $appointments = Appointment::query()
-            ->where('company_id', $user->currentCompany()?->id)
-            ->where(function ($q) use ($start, $end) {
-                $q->whereBetween('start_at', [$start, $end])
-                    ->orWhereBetween('end_at', [$start, $end]);
-            })
-            ->get();
-
-        return $appointments->map(function ($appt) {
-            return [
-                'id' => (string) $appt->id,
-                'calendarId' => $appt->type->value,
-                'title' => $appt->title,
-                'category' => $appt->all_day ? 'allday' : 'time',
-                'location' => $appt->location,
-                'start' => $appt->start_at->toIso8601String(),
-                'end' => $appt->end_at->toIso8601String(),
-                'color' => '#ffffff',
-                'backgroundColor' => $appt->color ?? $appt->type->color(),
-                'borderColor' => $appt->color ?? $appt->type->color(),
-                'isReadOnly' => false,
-            ];
-        })->values()->toArray();
+        return Carbon::parse($this->date);
     }
 
-    public function updateViewMode(string $mode): void
+    public function next(): void
     {
-        $this->currentView = $mode;
+        $date = $this->currentDate->copy();
+        match ($this->view) {
+            'month' => $date->addMonth(),
+            'week' => $date->addWeek(),
+            'day' => $date->addDay(),
+        };
+        $this->date = $date->toDateString();
     }
+
+    public function prev(): void
+    {
+        $date = $this->currentDate->copy();
+        match ($this->view) {
+            'month' => $date->subMonth(),
+            'week' => $date->subWeek(),
+            'day' => $date->subDay(),
+        };
+        $this->date = $date->toDateString();
+    }
+
+    public function today(): void
+    {
+        $this->date = now()->toDateString();
+    }
+
+    public function setView(string $view): void
+    {
+        $this->view = $view;
+    }
+
+    public function with(CalendarService $service): array
+    {
+        $days = match ($this->view) {
+            'month' => $service->getMonthGrid($this->currentDate),
+            'week', 'day' => $service->getWeekGrid($this->currentDate),
+            default => [],
+        };
+
+        $timeSlots = in_array($this->view, ['week', 'day'])
+            ? $service->getTimeSlots()
+            : [];
+
+        $company = auth()->user()?->currentCompany();
+        
+        // Get appointments from database
+        $events = [];
+        $monthEvents = [];
+        
+        if ($company) {
+            if (in_array($this->view, ['week', 'day'])) {
+                $events = $service->getAppointmentsForWeek($this->currentDate, $company->id)->toArray();
+            }
+            if ($this->view === 'month') {
+                $monthEvents = $service->getAppointmentsForMonth($this->currentDate, $company->id);
+            }
+        }
+
+        return compact('days', 'timeSlots', 'events', 'monthEvents');
+    }
+
+
+
+
 }; ?>
 
-<div class="flex flex-col gap-6" x-data="calendarApp">
-    {{-- Page Header --}}
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <flux:heading size="xl">{{ __('calendar.title') }}</flux:heading>
-            <flux:subheading class="text-zinc-500">{{ __('calendar.subheading') }}</flux:subheading>
-        </div>
-        <div class="flex items-center gap-2">
-            {{-- Future: Add appointment button --}}
-        </div>
-    </div>
 
-    {{-- Toolbar --}}
-    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-        {{-- Left: Navigation --}}
-        <div class="flex items-center gap-2">
-            <flux:button icon="chevron-left" variant="ghost" size="sm" @click="prev()" />
-            <flux:button icon="chevron-right" variant="ghost" size="sm" @click="next()" />
-            <flux:button variant="subtle" size="sm" @click="today()">{{ __('calendar.buttons.today') }}</flux:button>
 
-            <h2 class="ml-4 text-lg font-semibold text-zinc-800 dark:text-zinc-100" x-text="title"></h2>
+<div class="flex flex-col gap-6">
+
+    {{-- Page Header with Toolbar (Design System 2.1) --}}
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+        {{-- Left: Title + Navigation --}}
+        <div class="flex items-center gap-4">
+            {{-- Dynamic Title --}}
+            <flux:heading size="xl">
+                @if($view === 'month')
+                    {{ $this->currentDate->locale('tr')->translatedFormat('F Y') }}
+                @elseif($view === 'week')
+                    {{ $this->currentDate->copy()->startOfWeek()->translatedFormat('d') }} -
+                    {{ $this->currentDate->copy()->endOfWeek()->translatedFormat('d M Y') }}
+                @else
+                    {{ $this->currentDate->locale('tr')->translatedFormat('d F Y') }}
+                @endif
+            </flux:heading>
+
+            {{-- Navigation Buttons (Design System 4.1 - ghost variant) --}}
+            <div class="flex items-center gap-1">
+                <flux:button variant="ghost" size="sm" icon="chevron-left" wire:click="prev" />
+                <flux:button variant="ghost" size="sm" wire:click="today">{{ __('calendar.today') }}</flux:button>
+                <flux:button variant="ghost" size="sm" icon="chevron-right" wire:click="next" />
+            </div>
         </div>
 
         {{-- Right: View Switcher --}}
-        <div class="flex items-center gap-2">
-            <flux:select x-model="currentView" @change="changeView($event.target.value)" size="sm">
-                <option value="month">{{ __('calendar.view_modes.month') }}</option>
-                <option value="week">{{ __('calendar.view_modes.week') }}</option>
-                <option value="day">{{ __('calendar.view_modes.day') }}</option>
-            </flux:select>
+        <div class="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
+            <flux:button :variant="$view === 'month' ? 'primary' : 'ghost'" size="sm" wire:click="setView('month')">
+                {{ __('calendar.month') }}
+            </flux:button>
+            <flux:button :variant="$view === 'week' ? 'primary' : 'ghost'" size="sm" wire:click="setView('week')">
+                {{ __('calendar.week') }}
+            </flux:button>
+            <flux:button :variant="$view === 'day' ? 'primary' : 'ghost'" size="sm" wire:click="setView('day')">
+                {{ __('calendar.day') }}
+            </flux:button>
         </div>
+
     </div>
 
-    {{-- Calendar Container --}}
-    {{-- wire:ignore prevents Livewire from touching TOAST UI's DOM --}}
-    <div wire:ignore class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-        {{-- CRITICAL: TOAST UI requires explicit inline height per official docs --}}
-        <div id="calendar" style="height: 600px;"></div>
+
+    {{-- Calendar Grid Container --}}
+    <div
+        class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm overflow-hidden">
+
+        @if($view === 'month')
+            {{-- Day Headers --}}
+            <div class="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50">
+                @foreach(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as $dayKey)
+                    <div
+                        class="py-2 sm:py-3 text-center text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                        {{ __('calendar.days_short.' . $dayKey) }}
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Month Grid --}}
+            <div class="grid grid-cols-7">
+                @foreach($days as $day)
+                    <div class="min-h-[80px] sm:min-h-[100px] p-1 sm:p-2 border-b border-r border-zinc-200 dark:border-zinc-700 transition
+                                {{ $day['isCurrentMonth']
+                    ? 'bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700/30'
+                    : 'bg-zinc-50/50 dark:bg-zinc-900/30' }}">
+
+                        {{-- Day Number --}}
+                        <span class="inline-flex items-center justify-center text-xs sm:text-sm font-medium
+                                    {{ $day['isToday']
+                    ? 'size-6 sm:size-7 bg-primary-500 text-white rounded-full'
+                    : ($day['isCurrentMonth']
+                        ? 'text-zinc-900 dark:text-zinc-100'
+                        : 'text-zinc-400 dark:text-zinc-500') }}">
+                            {{ $day['day'] }}
+                        </span>
+
+                        {{-- Event Chips --}}
+                        @php
+                            $dateKey = $day['date']->toDateString();
+                            $dayEvents = $monthEvents[$dateKey] ?? [];
+                        @endphp
+                        @if(count($dayEvents) > 0)
+                            <div class="mt-1 space-y-0.5">
+                                @foreach(array_slice($dayEvents, 0, 3) as $event)
+                                    <div class="text-[10px] truncate px-1 py-0.5 rounded cursor-pointer transition
+                                        @switch($event['color'])
+                                            @case('primary')
+                                                bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300
+                                                @break
+                                            @case('success')
+                                                bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300
+                                                @break
+                                            @case('warning')
+                                                bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300
+                                                @break
+                                            @default
+                                                bg-zinc-100 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300
+                                        @endswitch">
+                                        {{ $event['title'] }}
+                                    </div>
+                                @endforeach
+                                @if(count($dayEvents) > 3)
+                                    <div class="text-[10px] text-zinc-500 dark:text-zinc-400 px-1">
+                                        +{{ count($dayEvents) - 3 }} {{ __('calendar.more') }}
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+
+                    </div>
+
+                @endforeach
+            </div>
+        @elseif($view === 'week')
+            {{-- Week View Container (single scroll container) --}}
+            <div class="h-[500px] sm:h-[600px] lg:h-[750px] overflow-y-auto" x-init="$el.scrollTop = 8 * 60">
+                
+                {{-- Header Row (sticky inside scroll container) --}}
+                <div class="flex sticky top-0 z-30 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900">
+                    {{-- Time Column Header (Empty Corner) --}}
+                    <div class="w-14 sm:w-16 flex-shrink-0 border-r border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900"></div>
+                    
+                    {{-- Day Headers --}}
+                    @foreach($days as $day)
+                        <div class="flex-1 py-2 sm:py-3 text-center border-r border-zinc-200 dark:border-zinc-700 last:border-r-0 bg-zinc-50 dark:bg-zinc-900">
+                            <div class="text-xs text-zinc-500 dark:text-zinc-400 uppercase">
+                                {{ $day['dayName'] }}
+                            </div>
+                            <div class="text-base sm:text-lg font-semibold {{ $day['isToday'] ? 'text-primary-600 dark:text-primary-400' : 'text-zinc-900 dark:text-zinc-100' }}">
+                                {{ $day['day'] }}
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                
+                {{-- Body Row (Time Column + Day Columns) --}}
+                <div class="flex">
+                    {{-- Time Column --}}
+                    <div class="w-14 sm:w-16 flex-shrink-0 border-r border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20">
+                        @foreach($timeSlots as $slot)
+                            <div class="h-[60px] flex items-center justify-center border-b border-dotted border-zinc-200 dark:border-zinc-700">
+                                <span class="text-[10px] sm:text-xs text-zinc-400 dark:text-zinc-500">
+                                    {{ $slot }}
+                                </span>
+                            </div>
+                        @endforeach
+
+                    </div>
+                    
+                    {{-- Day Columns --}}
+                    @foreach($days as $day)
+                        <div class="flex-1 border-r border-zinc-100 dark:border-zinc-700/50 last:border-r-0 relative">
+                            @foreach($timeSlots as $slot)
+                                <div class="h-[60px] border-b border-dotted border-zinc-100 dark:border-zinc-700/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-700/20 transition"></div>
+                            @endforeach
+                            
+                            {{-- Events --}}
+                            @foreach($events as $event)
+                                @if($event['dayIndex'] === $loop->parent->index)
+                                    @php
+                                        $top = ($event['startHour'] * 60) + $event['startMinute'];
+                                        $height = max(30, $event['durationMinutes']);
+                                    @endphp
+                                    <div 
+                                        class="absolute inset-x-1 z-10 rounded-lg px-2 py-1 text-xs font-medium overflow-hidden cursor-pointer transition-all border hover:opacity-80
+                                        @switch($event['color'])
+                                            @case('primary')
+                                                bg-primary-50 border-primary-200 text-primary-700 dark:bg-primary-900/30 dark:border-primary-700 dark:text-primary-300
+                                                @break
+                                            @case('success')
+                                                bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-emerald-300
+                                                @break
+                                            @case('warning')
+                                                bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-300
+                                                @break
+                                            @case('danger')
+                                                bg-rose-50 border-rose-200 text-rose-700 dark:bg-rose-900/30 dark:border-rose-700 dark:text-rose-300
+                                                @break
+                                            @default
+                                                bg-zinc-50 border-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-300
+                                        @endswitch"
+                                        style="top: {{ $top }}px; height: {{ $height }}px;">
+                                        <span class="line-clamp-2">{{ $event['title'] }}</span>
+                                    </div>
+
+
+                                @endif
+                            @endforeach
+                        </div>
+                    @endforeach
+
+                </div>
+                
+            </div>
+
+
+        @elseif($view === 'day')
+            {{-- Day View Container (single scroll container) --}}
+            <div class="h-[500px] sm:h-[600px] lg:h-[750px] overflow-y-auto" x-init="$el.scrollTop = 8 * 60">
+                
+                {{-- Header Row (sticky) --}}
+                <div class="flex sticky top-0 z-30 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900">
+                    {{-- Time Column Header (Empty Corner) --}}
+                    <div class="w-14 sm:w-16 flex-shrink-0 border-r border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900"></div>
+                    
+                    {{-- Single Day Header --}}
+                    <div class="flex-1 py-3 sm:py-4 text-center bg-zinc-50 dark:bg-zinc-900">
+                        <div class="text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ $this->currentDate->locale('tr')->translatedFormat('l') }}
+                        </div>
+                        <div class="text-2xl sm:text-3xl font-bold {{ $this->currentDate->isToday() ? 'text-primary-600 dark:text-primary-400' : 'text-zinc-900 dark:text-zinc-100' }}">
+                            {{ $this->currentDate->day }}
+                        </div>
+                        <div class="text-xs text-zinc-400 dark:text-zinc-500">
+                            {{ $this->currentDate->locale('tr')->translatedFormat('F Y') }}
+                        </div>
+                    </div>
+                </div>
+                
+                {{-- Body Row (Time Column + Day Column) --}}
+                <div class="flex">
+                    {{-- Time Column --}}
+                    <div class="w-14 sm:w-16 flex-shrink-0 border-r border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20">
+                        @foreach($timeSlots as $slot)
+                            <div class="h-[60px] flex items-center justify-center border-b border-dotted border-zinc-200 dark:border-zinc-700">
+                                <span class="text-[10px] sm:text-xs text-zinc-400 dark:text-zinc-500">
+                                    {{ $slot }}
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                    
+                    {{-- Single Day Column --}}
+                    <div class="flex-1 relative">
+                        @foreach($timeSlots as $slot)
+                            <div class="h-[60px] border-b border-dotted border-zinc-100 dark:border-zinc-700/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-700/20 transition"></div>
+                        @endforeach
+                        
+                        {{-- Events (filter by current day's weekday) --}}
+                        @php
+                            $currentDayIndex = $this->currentDate->dayOfWeekIso - 1;
+                        @endphp
+                        @foreach($events as $event)
+                            @if($event['dayIndex'] === $currentDayIndex)
+                                @php
+                                    $top = ($event['startHour'] * 60) + $event['startMinute'];
+                                    $height = max(30, $event['durationMinutes']);
+                                @endphp
+                                <div 
+                                    class="absolute inset-x-2 z-10 rounded-lg px-3 py-2 text-sm font-medium overflow-hidden cursor-pointer transition-all border hover:opacity-80
+                                    @switch($event['color'])
+                                        @case('primary')
+                                            bg-primary-50 border-primary-200 text-primary-700 dark:bg-primary-900/30 dark:border-primary-700 dark:text-primary-300
+                                            @break
+                                        @case('success')
+                                            bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-emerald-300
+                                            @break
+                                        @case('warning')
+                                            bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-300
+                                            @break
+                                        @case('danger')
+                                            bg-rose-50 border-rose-200 text-rose-700 dark:bg-rose-900/30 dark:border-rose-700 dark:text-rose-300
+                                            @break
+                                        @default
+                                            bg-zinc-50 border-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-300
+                                    @endswitch"
+                                    style="top: {{ $top }}px; height: {{ $height }}px;">
+                                    <span class="line-clamp-3">{{ $event['title'] }}</span>
+                                </div>
+
+
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+                
+            </div>
+        @endif
+
+
+
     </div>
+
+
+
 </div>
-
-@script
-<script>
-    Alpine.data('calendarApp', () => ({
-        instance: null,
-        currentView: @entangle('currentView'),
-        title: '',
-
-        init() {
-            const container = document.getElementById('calendar');
-            
-            // Calculate dynamic height based on viewport
-            const viewportHeight = window.innerHeight;
-            const offset = 280; // Header + toolbar + margins
-            const calculatedHeight = Math.max(viewportHeight - offset, 500);
-            container.style.height = `${calculatedHeight}px`;
-
-            // Create CalendarManager instance
-            this.instance = new window.CalendarManager(container, {
-                defaultView: this.currentView,
-                timezone: {
-                    zones: [
-                        { timezoneName: '{{ auth()->user()->timezone ?? "UTC" }}', displayLabel: 'Local' }
-                    ]
-                }
-            });
-
-            // Initialize
-            this.instance.init();
-
-            // Bind event callbacks
-            this.instance.onUpdate = (e) => this.handleUpdate(e);
-            this.instance.onSelect = (e) => this.handleSelect(e);
-            this.instance.onClick = (e) => this.handleClick(e);
-
-            // Fetch initial data
-            this.fetchData();
-            
-            // Handle window resize
-            window.addEventListener('resize', () => {
-                const newHeight = Math.max(window.innerHeight - offset, 500);
-                container.style.height = `${newHeight}px`;
-                this.instance.instance.render();
-            });
-        },
-
-        fetchData() {
-            const range = this.instance.getDateRange();
-            this.$wire.fetchEvents(range.start.toISOString(), range.end.toISOString())
-                .then(events => {
-                    this.instance.updateEvents(events);
-                    this.updateTitle();
-                });
-        },
-
-        next() { this.instance.next(); this.fetchData(); },
-        prev() { this.instance.prev(); this.fetchData(); },
-        today() { this.instance.today(); this.fetchData(); },
-
-        changeView(view) {
-            this.instance.changeView(view);
-            this.updateTitle();
-            this.fetchData();
-        },
-
-        updateTitle() {
-            const start = this.instance.instance.getDateRangeStart();
-            const options = { year: 'numeric', month: 'long' };
-            this.title = start.toDate().toLocaleDateString('tr-TR', options);
-        },
-
-        handleSelect(e) {
-            this.$dispatch('open-create-modal', {
-                start: e.start.toDate().toISOString(),
-                end: e.end.toDate().toISOString(),
-                allDay: e.isAllday
-            });
-            this.instance.instance.clearGridSelections();
-        },
-
-        handleClick(e) {
-            this.$dispatch('open-detail-modal', { id: e.event.id });
-        },
-
-        handleUpdate(e) {
-            console.log('Event updated:', e.event.id, e.changes);
-        }
-    }));
-</script>
-@endscript

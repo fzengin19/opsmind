@@ -7,5 +7,6 @@ return [
     'dashboard' => 'Kontrol Paneli',
     'settings' => 'Ayarlar',
     'roles' => 'Roller ve İzinler',
+    'calendar' => 'Takvim',
     'logout' => 'Çıkış Yap',
 ];

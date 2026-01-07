@@ -8,10 +8,10 @@ Bu klasör OpsMind MVP'nin 11 fazını detaylı olarak içerir.
 |---|-----|------|-------|
 | 01 | [Database & Core Models](01-database-core-models.md) | 3 gün | ✅ |
 | 02 | [Auth & Roles](02-auth-roles.md) | 4 gün | ✅ |
-| 02.1 | [Spatie Teams Refactor](02.1-spatie-teams-refactor.md) | 2 gün | ⬜ |
-| 03 | [Dashboard Skeleton](03-dashboard-skeleton.md) | 2 gün | ⬜ |
-| 04 | [Calendar UI](04-calendar-ui.md) | 4 gün | 🟡 |
-| **04.5** | **[Calendar Entity](04.5-calendar-entity.md)** | **1-2 gün** | ⬜ |
+| 02.1 | [Spatie Teams Refactor](02.1-spatie-teams-refactor.md) | 2 gün | ✅ |
+| 03 | [Dashboard Skeleton](03-dashboard-skeleton.md) | 2 gün | ✅ |
+| 04 | [Calendar UI](04-calendar-ui.md) | 4 gün | ✅ |
+| **04.5** | **[Calendar Entity](04.5-calendar-entity.md)** | **1-2 gün** | 🟡 |
 | 05 | [Appointment CRUD](05-appointment-crud.md) | 3 gün | ⬜ |
 | 06 | [Google Calendar Sync](06-google-calendar-sync.md) | 4 gün | ⬜ |
 | 07 | [Contact Management](07-contact-management.md) | 4 gün | ⬜ |

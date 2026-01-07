@@ -117,7 +117,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             {{-- Navigation Buttons (Design System 4.1 - ghost variant) --}}
             <div class="flex items-center gap-1">
                 <flux:button variant="ghost" size="sm" icon="chevron-left" wire:click="prev" />
-                <flux:button variant="ghost" size="sm" wire:click="today">Bugün</flux:button>
+                <flux:button variant="ghost" size="sm" wire:click="today">{{ __('calendar.today') }}</flux:button>
                 <flux:button variant="ghost" size="sm" icon="chevron-right" wire:click="next" />
             </div>
         </div>
@@ -125,13 +125,13 @@ new #[Layout('components.layouts.app')] class extends Component {
         {{-- Right: View Switcher --}}
         <div class="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
             <flux:button :variant="$view === 'month' ? 'primary' : 'ghost'" size="sm" wire:click="setView('month')">
-                Ay
+                {{ __('calendar.month') }}
             </flux:button>
             <flux:button :variant="$view === 'week' ? 'primary' : 'ghost'" size="sm" wire:click="setView('week')">
-                Hafta
+                {{ __('calendar.week') }}
             </flux:button>
             <flux:button :variant="$view === 'day' ? 'primary' : 'ghost'" size="sm" wire:click="setView('day')">
-                Gün
+                {{ __('calendar.day') }}
             </flux:button>
         </div>
 
@@ -143,12 +143,12 @@ new #[Layout('components.layouts.app')] class extends Component {
         class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm overflow-hidden">
 
         @if($view === 'month')
-            {{-- Day Headers (Pzt, Sal, Çar...) --}}
+            {{-- Day Headers --}}
             <div class="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50">
-                @foreach(['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'] as $dayName)
+                @foreach(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as $dayKey)
                     <div
                         class="py-2 sm:py-3 text-center text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                        {{ $dayName }}
+                        {{ __('calendar.days_short.' . $dayKey) }}
                     </div>
                 @endforeach
             </div>
@@ -198,7 +198,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @endforeach
                                 @if(count($dayEvents) > 3)
                                     <div class="text-[10px] text-zinc-500 dark:text-zinc-400 px-1">
-                                        +{{ count($dayEvents) - 3 }} daha
+                                        +{{ count($dayEvents) - 3 }} {{ __('calendar.more') }}
                                     </div>
                                 @endif
                             </div>

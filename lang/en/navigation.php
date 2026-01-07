@@ -7,5 +7,6 @@ return [
     'dashboard' => 'Dashboard',
     'settings' => 'Settings',
     'roles' => 'Roles & Permissions',
+    'calendar' => 'Calendar',
     'logout' => 'Log Out',
 ];

@@ -42,11 +42,20 @@ class CalendarDemoSeeder extends Seeder
             ['title' => 'Weekly Retro', 'day' => 4, 'hour' => 16, 'duration' => 60, 'type' => AppointmentType::Meeting],
         ];
 
+        // Default takvimi al
+        $calendar = $company->defaultCalendar();
+        if (! $calendar) {
+            $this->command->warn('Default takvim bulunamadı. Önce migration seeder çalıştırın.');
+
+            return;
+        }
+
         foreach ($appointments as $apt) {
             $startAt = $weekStart->copy()->addDays($apt['day'])->setHour($apt['hour'])->setMinute(0)->setSecond(0);
 
             Appointment::create([
                 'company_id' => $company->id,
+                'calendar_id' => $calendar->id,
                 'created_by' => $user->id,
                 'title' => $apt['title'],
                 'type' => $apt['type'],

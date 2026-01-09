@@ -24,6 +24,7 @@ class AppointmentFactory extends Factory
 
         return [
             'company_id' => Company::factory(),
+            'calendar_id' => null,
             'title' => fake()->randomElement([
                 'Haftalık Toplantı',
                 'Sprint Planning',

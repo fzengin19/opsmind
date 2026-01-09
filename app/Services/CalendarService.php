@@ -76,18 +76,22 @@ class CalendarService
     /**
      * Get appointments for a specific week
      */
-    public function getAppointmentsForWeek(Carbon $date, int $companyId): Collection
+    public function getAppointmentsForWeek(Carbon $date, int $companyId, ?int $calendarId = null): Collection
     {
         $weekStart = $date->copy()->startOfWeek(Carbon::MONDAY);
         $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
 
-        return Appointment::where('company_id', $companyId)
-            ->whereBetween('start_at', [$weekStart, $weekEnd])
-            ->orderBy('start_at')
+        $query = Appointment::where('company_id', $companyId)
+            ->whereBetween('start_at', [$weekStart, $weekEnd]);
+
+        if ($calendarId !== null) {
+            $query->where('calendar_id', $calendarId);
+        }
+
+        return $query->orderBy('start_at')
             ->get()
             ->map(function ($apt) use ($weekStart) {
                 $dayIndex = (int) $weekStart->diffInDays($apt->start_at);
-
 
                 return [
                     'id' => $apt->id,
@@ -105,20 +109,24 @@ class CalendarService
     /**
      * Get appointments for a specific month (grouped by date)
      */
-    public function getAppointmentsForMonth(Carbon $date, int $companyId): array
+    public function getAppointmentsForMonth(Carbon $date, int $companyId, ?int $calendarId = null): array
     {
         $startOfMonth = $date->copy()->startOfMonth()->startOfWeek(Carbon::MONDAY);
         $endOfMonth = $date->copy()->endOfMonth()->endOfWeek(Carbon::SUNDAY)->endOfDay();
 
-        $appointments = Appointment::where('company_id', $companyId)
-            ->whereBetween('start_at', [$startOfMonth, $endOfMonth])
-            ->orderBy('start_at')
-            ->get();
+        $query = Appointment::where('company_id', $companyId)
+            ->whereBetween('start_at', [$startOfMonth, $endOfMonth]);
+
+        if ($calendarId !== null) {
+            $query->where('calendar_id', $calendarId);
+        }
+
+        $appointments = $query->orderBy('start_at')->get();
 
         $grouped = [];
         foreach ($appointments as $apt) {
             $dateKey = $apt->start_at->toDateString(); // Y-m-d
-            if (!isset($grouped[$dateKey])) {
+            if (! isset($grouped[$dateKey])) {
                 $grouped[$dateKey] = [];
             }
             $grouped[$dateKey][] = [
@@ -131,7 +139,6 @@ class CalendarService
 
         return $grouped;
     }
-
 
     /**
      * Map AppointmentType to calendar color
@@ -167,4 +174,3 @@ class CalendarService
         ];
     }
 }
-

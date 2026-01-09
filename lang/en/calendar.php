@@ -36,4 +36,8 @@ return [
 
     // Event display
     'more' => 'more',
+
+    // Calendar entity names
+    'default_calendar_name' => 'Default Calendar',
+    'personal_calendar_suffix' => 'Calendar',
 ];

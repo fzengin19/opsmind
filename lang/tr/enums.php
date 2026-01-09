@@ -31,4 +31,15 @@ return [
         'review' => 'İnceleme',
         'done' => 'Tamamlandı',
     ],
+    'calendar_type' => [
+        'default' => 'Genel',
+        'team' => 'Ekip',
+        'resource' => 'Kaynak',
+        'personal' => 'Kişisel',
+    ],
+    'calendar_visibility' => [
+        'company_wide' => 'Şirket Geneli',
+        'members_only' => 'Sadece Üyeler',
+        'private' => 'Özel',
+    ],
 ];

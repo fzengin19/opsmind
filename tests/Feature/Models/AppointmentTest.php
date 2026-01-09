@@ -74,4 +74,17 @@ describe('Appointment Model', function () {
 
         expect($appointment->fresh()->attendees)->toHaveCount(1);
     });
+
+    it('belongs to calendar', function () {
+        $calendar = $this->company->defaultCalendar();
+
+        $appointment = Appointment::factory()->create([
+            'company_id' => $this->company->id,
+            'calendar_id' => $calendar->id,
+            'created_by' => $this->user->id,
+        ]);
+
+        expect($appointment->calendar)->not->toBeNull();
+        expect($appointment->calendar->id)->toBe($calendar->id);
+    });
 });

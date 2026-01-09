@@ -133,6 +133,13 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function calendars(): BelongsToMany
+    {
+        return $this->belongsToMany(Calendar::class)
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
     public function assignedTasks(): HasMany
     {
         return $this->hasMany(Task::class, 'assignee_id');

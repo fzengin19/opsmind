@@ -16,6 +16,7 @@ class Appointment extends Model
 
     protected $fillable = [
         'company_id',
+        'calendar_id',
         'title',
         'description',
         'type',
@@ -41,6 +42,11 @@ class Appointment extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function calendar(): BelongsTo
+    {
+        return $this->belongsTo(Calendar::class);
     }
 
     public function createdBy(): BelongsTo

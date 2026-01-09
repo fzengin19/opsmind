@@ -36,4 +36,8 @@ return [
 
     // Event display
     'more' => 'daha',
+
+    // Calendar entity names
+    'default_calendar_name' => 'Genel Takvim',
+    'personal_calendar_suffix' => 'Takvimi',
 ];

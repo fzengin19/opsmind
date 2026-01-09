@@ -31,4 +31,15 @@ return [
         'review' => 'Review',
         'done' => 'Done',
     ],
+    'calendar_type' => [
+        'default' => 'Default',
+        'team' => 'Team',
+        'resource' => 'Resource',
+        'personal' => 'Personal',
+    ],
+    'calendar_visibility' => [
+        'company_wide' => 'Company Wide',
+        'members_only' => 'Members Only',
+        'private' => 'Private',
+    ],
 ];

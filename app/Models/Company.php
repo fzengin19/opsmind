@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CalendarType;
+use App\Enums\CalendarVisibility;
+use App\Observers\CompanyObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ObservedBy([CompanyObserver::class])]
 class Company extends Model
 {
     use HasFactory;
@@ -62,6 +67,17 @@ class Company extends Model
 
         setPermissionsTeamId($this->id);
         $user->assignRole($roleName);
+
+        // Kullanıcıya kişisel takvim oluştur
+        $calendar = $this->calendars()->create([
+            'name' => $user->name.' '.__('calendar.personal_calendar_suffix'),
+            'type' => CalendarType::Personal->value,
+            'visibility' => CalendarVisibility::Private->value,
+            'is_default' => false,
+            'color' => '#8b5cf6',
+        ]);
+
+        $calendar->users()->attach($user->id, ['role' => 'owner']);
     }
 
     /**
@@ -73,8 +89,32 @@ class Company extends Model
         setPermissionsTeamId($this->id);
         $user->syncRoles([]);
 
-        // Then detach from pivot
+        // Delete user's personal calendar in this company
+        $this->calendars()
+            ->where('type', CalendarType::Personal->value)
+            ->whereHas('users', fn ($q) => $q->where('user_id', $user->id)->where('role', 'owner'))
+            ->delete();
+
+        // Detach user from all company calendars
+        $calendarIds = $this->calendars()->pluck('id');
+        $user->calendars()->detach($calendarIds);
+
+        // Then detach from company pivot
         $this->users()->detach($user->id);
+    }
+
+    // ==========================================
+    // Calendar Relationships
+    // ==========================================
+
+    public function calendars(): HasMany
+    {
+        return $this->hasMany(Calendar::class);
+    }
+
+    public function defaultCalendar(): ?Calendar
+    {
+        return $this->calendars()->where('is_default', true)->first();
     }
 
     // ==========================================

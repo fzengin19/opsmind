@@ -40,4 +40,25 @@ return [
     // Calendar entity names
     'default_calendar_name' => 'Genel Takvim',
     'personal_calendar_suffix' => 'Takvimi',
+
+    // Appointment Form
+    'new_appointment' => 'Yeni Randevu',
+    'edit_appointment' => 'Randevuyu Düzenle',
+    'delete_appointment' => 'Randevuyu Sil',
+    'delete_confirmation' => '":title" randevusunu silmek istediğinize emin misiniz?',
+    'calendar' => 'Takvim',
+    'select_calendar' => 'Takvim seçin',
+    'appointment_title' => 'Başlık',
+    'appointment_title_placeholder' => 'Randevu başlığı',
+    'appointment_type' => 'Tür',
+    'start' => 'Başlangıç',
+    'end' => 'Bitiş',
+    'all_day' => 'Tüm gün',
+    'location' => 'Konum',
+    'location_placeholder' => 'Toplantı yeri veya link',
+    'attendees' => 'Katılımcılar',
+    'description' => 'Açıklama',
+
+    // Calendar Sidebar
+    'my_calendars' => 'Takvimlerim',
 ];

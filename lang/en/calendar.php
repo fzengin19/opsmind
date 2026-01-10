@@ -40,4 +40,25 @@ return [
     // Calendar entity names
     'default_calendar_name' => 'Default Calendar',
     'personal_calendar_suffix' => 'Calendar',
+
+    // Appointment Form
+    'new_appointment' => 'New Appointment',
+    'edit_appointment' => 'Edit Appointment',
+    'delete_appointment' => 'Delete Appointment',
+    'delete_confirmation' => 'Are you sure you want to delete ":title"?',
+    'calendar' => 'Calendar',
+    'select_calendar' => 'Select calendar',
+    'appointment_title' => 'Title',
+    'appointment_title_placeholder' => 'Appointment title',
+    'appointment_type' => 'Type',
+    'start' => 'Start',
+    'end' => 'End',
+    'all_day' => 'All day',
+    'location' => 'Location',
+    'location_placeholder' => 'Meeting place or link',
+    'attendees' => 'Attendees',
+    'description' => 'Description',
+
+    // Calendar Sidebar
+    'my_calendars' => 'My Calendars',
 ];

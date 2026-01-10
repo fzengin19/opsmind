@@ -3,8 +3,11 @@
 use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Carbon\Carbon;
 use App\Services\CalendarService;
+use App\Models\Calendar;
 
 
 new #[Layout('components.layouts.app')] class extends Component {
@@ -14,11 +17,16 @@ new #[Layout('components.layouts.app')] class extends Component {
     #[Url]
     public string $date = '';
 
+    public array $visibleCalendarIds = [];
+
     public function mount(): void
     {
         if (empty($this->date)) {
             $this->date = now()->toDateString();
         }
+
+        // Başlangıçta tüm erişilebilir takvimler görünür
+        $this->visibleCalendarIds = $this->accessibleCalendars->pluck('id')->toArray();
     }
 
     public function getCurrentDateProperty(): Carbon
@@ -88,9 +96,48 @@ new #[Layout('components.layouts.app')] class extends Component {
         return compact('days', 'timeSlots', 'events', 'monthEvents');
     }
 
+    #[Computed]
+    public function accessibleCalendars()
+    {
+        $user = auth()->user();
+        if (! $user || ! $user->currentCompany()) {
+            return collect();
+        }
 
+        return Calendar::accessibleBy($user)
+            ->where('company_id', $user->currentCompany()->id)
+            ->get();
+    }
 
+    public function toggleCalendar(int $calendarId): void
+    {
+        if (in_array($calendarId, $this->visibleCalendarIds)) {
+            $this->visibleCalendarIds = array_values(array_diff($this->visibleCalendarIds, [$calendarId]));
+        } else {
+            $this->visibleCalendarIds[] = $calendarId;
+        }
+    }
 
+    public function openNewAppointment(?string $date = null): void
+    {
+        $this->dispatch('open-appointment-form', appointmentId: null, prefillDate: $date);
+    }
+
+    public function openEditAppointment(int $appointmentId): void
+    {
+        $this->dispatch('open-appointment-form', appointmentId: $appointmentId, prefillDate: null);
+    }
+
+    public function confirmDeleteAppointment(int $appointmentId): void
+    {
+        $this->dispatch('confirm-delete-appointment', appointmentId: $appointmentId);
+    }
+
+    #[On('calendar-refresh')]
+    public function refreshCalendar(): void
+    {
+        // Livewire will re-render automatically
+    }
 }; ?>
 
 
@@ -122,16 +169,22 @@ new #[Layout('components.layouts.app')] class extends Component {
             </div>
         </div>
 
-        {{-- Right: View Switcher --}}
-        <div class="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
-            <flux:button :variant="$view === 'month' ? 'primary' : 'ghost'" size="sm" wire:click="setView('month')">
-                {{ __('calendar.month') }}
-            </flux:button>
-            <flux:button :variant="$view === 'week' ? 'primary' : 'ghost'" size="sm" wire:click="setView('week')">
-                {{ __('calendar.week') }}
-            </flux:button>
-            <flux:button :variant="$view === 'day' ? 'primary' : 'ghost'" size="sm" wire:click="setView('day')">
-                {{ __('calendar.day') }}
+        {{-- Right: View Switcher + New Appointment Button --}}
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
+                <flux:button :variant="$view === 'month' ? 'primary' : 'ghost'" size="sm" wire:click="setView('month')">
+                    {{ __('calendar.month') }}
+                </flux:button>
+                <flux:button :variant="$view === 'week' ? 'primary' : 'ghost'" size="sm" wire:click="setView('week')">
+                    {{ __('calendar.week') }}
+                </flux:button>
+                <flux:button :variant="$view === 'day' ? 'primary' : 'ghost'" size="sm" wire:click="setView('day')">
+                    {{ __('calendar.day') }}
+                </flux:button>
+            </div>
+
+            <flux:button variant="primary" icon="plus" wire:click="openNewAppointment">
+                {{ __('calendar.new_appointment') }}
             </flux:button>
         </div>
 
@@ -378,6 +431,8 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     </div>
 
-
+    {{-- Modals --}}
+    <livewire:calendar.appointment-form />
+    <livewire:calendar.delete-confirmation />
 
 </div>

@@ -89,6 +89,7 @@ class CalendarService
         }
 
         return $query->orderBy('start_at')
+            ->with('calendar')
             ->get()
             ->map(function ($apt) use ($weekStart) {
                 $dayIndex = (int) $weekStart->diffInDays($apt->start_at);
@@ -100,8 +101,9 @@ class CalendarService
                     'startHour' => $apt->start_at->hour,
                     'startMinute' => $apt->start_at->minute,
                     'durationMinutes' => $apt->start_at->diffInMinutes($apt->end_at),
-                    'color' => $this->mapTypeToColor($apt->type),
+                    'color' => $apt->calendar?->color ?? $apt->type->color(),
                     'type' => $apt->type->value,
+                    'calendarId' => $apt->calendar_id,
                 ];
             });
     }
@@ -121,7 +123,7 @@ class CalendarService
             $query->where('calendar_id', $calendarId);
         }
 
-        $appointments = $query->orderBy('start_at')->get();
+        $appointments = $query->orderBy('start_at')->with('calendar')->get();
 
         $grouped = [];
         foreach ($appointments as $apt) {
@@ -133,7 +135,8 @@ class CalendarService
                 'id' => $apt->id,
                 'title' => $apt->title,
                 'time' => $apt->start_at->format('H:i'),
-                'color' => $this->mapTypeToColor($apt->type),
+                'color' => $apt->calendar?->color ?? $apt->type->color(),
+                'calendarId' => $apt->calendar_id,
             ];
         }
 

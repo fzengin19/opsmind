@@ -46,6 +46,8 @@ return [
     'edit_appointment' => 'Edit Appointment',
     'delete_appointment' => 'Delete Appointment',
     'delete_confirmation' => 'Are you sure you want to delete ":title"?',
+    'confirm' => 'Yes, Delete',
+    'search_attendees' => 'Search attendees...',
     'calendar' => 'Calendar',
     'select_calendar' => 'Select calendar',
     'appointment_title' => 'Title',

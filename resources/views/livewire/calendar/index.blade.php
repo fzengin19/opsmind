@@ -471,7 +471,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     </div>
 
     {{-- Modals --}}
-    <livewire:calendar.appointment-form />
+    <livewire:calendar.appointment-form :calendars="$this->accessibleCalendars" />
     <livewire:calendar.delete-confirmation />
 
 </div>

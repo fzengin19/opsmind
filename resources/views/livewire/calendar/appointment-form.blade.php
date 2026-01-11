@@ -9,6 +9,7 @@ use App\Actions\Appointments\UpdateAppointmentAction;
 use App\Models\Appointment;
 use App\Models\Calendar;
 use App\Enums\AppointmentType;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
@@ -27,7 +28,9 @@ new class extends Component {
     public bool $all_day = false;
     public ?string $location = null;
     public ?string $description = null;
+
     public array $attendee_user_ids = [];
+    public string $searchQuery = '';
 
     protected function rules(): array
     {
@@ -139,22 +142,56 @@ new class extends Component {
             'attendee_user_ids'
         ]);
         $this->type = 'meeting';
+        $this->searchQuery = '';
     }
 
     #[Computed]
-    public function availableCalendars()
+    public function searchUsers()
     {
-        $user = auth()->user();
+        if (strlen($this->searchQuery) < 2) {
+            return [];
+        }
 
-        return Calendar::accessibleBy($user)
-            ->where('company_id', $user->currentCompany()->id)
+        return auth()->user()->currentCompany()->users()
+            ->where(function ($q) {
+                $q->where('name', 'like', "%{$this->searchQuery}%")
+                    ->orWhere('email', 'like', "%{$this->searchQuery}%");
+            })
+            ->whereNotIn('users.id', $this->attendee_user_ids)
+            ->take(5)
             ->get();
     }
 
     #[Computed]
-    public function companyUsers()
+    public function selectedUsers()
     {
-        return auth()->user()->currentCompany()->users;
+        if (empty($this->attendee_user_ids)) {
+            return collect();
+        }
+
+        return User::whereIn('id', $this->attendee_user_ids)->get();
+    }
+
+    public function addAttendee(int $userId): void
+    {
+        if (!in_array($userId, $this->attendee_user_ids)) {
+            $this->attendee_user_ids[] = $userId;
+        }
+        $this->searchQuery = '';
+    }
+
+    public function removeAttendee(int $userId): void
+    {
+        $this->attendee_user_ids = array_values(array_diff($this->attendee_user_ids, [$userId]));
+    }
+
+    public $calendars = []; // Passed from parent
+
+    public function with(): array
+    {
+        return [
+            'availableCalendars' => $this->calendars, // Alias for backward compatibility if needed, or just use $calendars in view
+        ];
     }
 }; ?>
 
@@ -168,7 +205,7 @@ new class extends Component {
             {{-- Takvim Seçimi --}}
             <flux:select wire:model="calendar_id" label="{{ __('calendar.calendar') }}" required>
                 <option value="">{{ __('calendar.select_calendar') }}</option>
-                @foreach($this->availableCalendars as $calendar)
+                @foreach($calendars as $calendar)
                     <option value="{{ $calendar->id }}">{{ $calendar->name }}</option>
                 @endforeach
             </flux:select>
@@ -201,18 +238,43 @@ new class extends Component {
             {{-- Katılımcılar --}}
             <div>
                 <label class="block text-sm font-medium mb-2">{{ __('calendar.attendees') }}</label>
-                <div class="flex flex-wrap gap-2 p-3 border rounded-lg dark:border-zinc-700 max-h-40 overflow-y-auto">
-                    @foreach($this->companyUsers as $user)
-                        <label @class([
-                            'flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-colors text-sm',
-                            'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300' => in_array($user->id, $attendee_user_ids),
-                            'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700' => !in_array($user->id, $attendee_user_ids),
-                        ])>
-                            <input type="checkbox" value="{{ $user->id }}" wire:model.live="attendee_user_ids"
-                                class="sr-only">
+
+                {{-- Selected Users (Chips) --}}
+                <div class="flex flex-wrap gap-2 mb-2">
+                    @foreach($this->selectedUsers as $user)
+                        <flux:badge size="sm" class="gap-1 pr-1">
                             {{ $user->name }}
-                        </label>
+                            @if($user->id !== auth()->id())
+                                <div wire:click="removeAttendee({{ $user->id }})" class="cursor-pointer hover:text-red-500">
+                                    <flux:icon name="x-mark" size="xs" />
+                                </div>
+                            @endif
+                        </flux:badge>
                     @endforeach
+                </div>
+
+                {{-- Search Input --}}
+                <div class="relative">
+                    <flux:input wire:model.live.debounce.300ms="searchQuery" icon="magnifying-glass"
+                        placeholder="{{ __('calendar.search_attendees') }}" autocomplete="off" />
+
+                    {{-- Search Results Dropdown --}}
+                    @if(!empty($this->searchQuery) && count($this->searchUsers) > 0)
+                        <div
+                            class="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 max-h-48 overflow-y-auto">
+                            @foreach($this->searchUsers as $user)
+                                <div wire:click="addAttendee({{ $user->id }})"
+                                    class="flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
+                                    <flux:avatar size="xs" :name="$user->name" />
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm font-medium truncate">{{ $user->name }}</div>
+                                        <div class="text-xs text-zinc-500 truncate">{{ $user->email }}</div>
+                                    </div>
+                                    <flux:icon name="plus" size="xs" class="text-zinc-400" />
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
 

@@ -56,6 +56,7 @@ return [
     'all_day' => 'Tüm gün',
     'location' => 'Konum',
     'location_placeholder' => 'Toplantı yeri veya link',
+    'search_attendees' => 'Katılımcı ara...',
     'attendees' => 'Katılımcılar',
     'description' => 'Açıklama',
 

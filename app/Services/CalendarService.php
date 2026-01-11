@@ -164,6 +164,70 @@ class CalendarService
     }
 
     /**
+     * Get agenda for a specific day with "Stack & Gap" logic.
+     * Returns a mixed collection of Events and Gaps.
+     */
+    public function getDayAgenda(Carbon $date, int $companyId, ?int $calendarId = null): Collection
+    {
+        $query = Appointment::where('company_id', $companyId)
+            ->whereDate('start_at', $date->toDateString());
+
+        if ($calendarId !== null) {
+            $query->where('calendar_id', $calendarId);
+        }
+
+        // 1. Fetch & Sort
+        $events = $query->with('calendar')
+            ->orderBy('start_at')
+            ->orderBy('end_at')
+            ->orderBy('created_at')
+            ->get();
+
+        $agenda = collect();
+        // Start tracking from 08:00 or the start of the first event if earlier
+        $cursor = $date->copy()->setTime(8, 0); 
+        
+        // If first event is earlier than 08:00, start cursor there
+        if ($events->isNotEmpty() && $events->first()->start_at->lt($cursor)) {
+            $cursor = $events->first()->start_at->copy();
+        }
+
+        // 2. Stack & Gap Algorithm
+        foreach ($events as $event) {
+            // Check for Gap (> 15 mins)
+            // We only look for "Absolute Free Time". 
+            // If the cursor (max end time seen so far) is less than this event's start...
+            if ($cursor->copy()->addMinutes(15)->lte($event->start_at)) {
+                $agenda->push([
+                    'type' => 'gap',
+                    'start' => $cursor->copy(),
+                    'end' => $event->start_at->copy(),
+                    'duration' => $cursor->diffInMinutes($event->start_at),
+                ]);
+            }
+
+            // Add Event
+            $agenda->push([
+                'type' => 'event',
+                'data' => $event,
+            ]);
+
+            // Update Cursor (Max End Time)
+            // We must take the MAX of current cursor and event end, to handle nested events.
+            // If we just took event->end, a short nested event could pull the cursor back.
+            if ($event->end_at->gt($cursor)) {
+                $cursor = $event->end_at->copy();
+            }
+        }
+
+        // Optional: specific end of day? For now let's just leave it open-ended.
+        
+        return $agenda;
+    }
+
+
+
+    /**
      * Get appointments for a specific month (grouped by date)
      */
     public function getAppointmentsForMonth(Carbon $date, int $companyId, ?int $calendarId = null): array

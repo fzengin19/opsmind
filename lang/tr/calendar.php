@@ -61,4 +61,9 @@ return [
 
     // Calendar Sidebar
     'my_calendars' => 'Takvimlerim',
+    
+    // Day Detail
+    'no_events_today' => 'Bugün için etkinlik bulunmuyor.',
+    'create_first_event' => 'İlk etkinliği oluştur',
+    'free_time' => 'Boş Zaman',
 ];

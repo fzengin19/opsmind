@@ -61,4 +61,9 @@ return [
 
     // Calendar Sidebar
     'my_calendars' => 'My Calendars',
+
+    // Day Detail
+    'no_events_today' => 'No events for today.',
+    'create_first_event' => 'Create first event',
+    'free_time' => 'Free Time',
 ];

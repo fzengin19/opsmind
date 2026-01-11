@@ -16,6 +16,7 @@ return [
     'remove' => 'Remove',
     'view' => 'View',
     'send' => 'Send',
+    'back' => 'Back',
 
     // Search & Filter
     'search' => 'Search',

@@ -45,7 +45,7 @@ new class extends Component {
     }
 
     #[On('open-appointment-form')]
-    public function open(?int $appointmentId = null, ?string $prefillDate = null): void
+    public function open(?int $appointmentId = null, ?string $prefillDate = null, ?string $start_time = null): void
     {
         $this->resetForm();
         $this->showModal = true;
@@ -74,8 +74,13 @@ new class extends Component {
             $this->attendee_user_ids = [auth()->id()];
 
             if ($prefillDate) {
-                $this->start_at = $prefillDate . 'T09:00';
-                $this->end_at = $prefillDate . 'T10:00';
+                // Use provided start_time or default to 09:00
+                $time = $start_time ?? '09:00';
+                $this->start_at = $prefillDate . 'T' . $time;
+
+                // Set end time to 1 hour later
+                $startCarbon = Carbon::parse($this->start_at);
+                $this->end_at = $startCarbon->addHour()->format('Y-m-d\TH:i');
             } else {
                 $now = now()->addHour()->startOfHour();
                 $this->start_at = $now->format('Y-m-d\TH:i');
@@ -219,9 +224,9 @@ new class extends Component {
                 <flux:button variant="ghost" type="button" wire:click="$set('showModal', false)">
                     {{ __('common.cancel') }}
                 </flux:button>
-                
+
                 @if($appointment)
-                    <flux:button variant="danger" type="button" 
+                    <flux:button variant="danger" type="button"
                         wire:click="$dispatch('open-delete-confirmation', { appointmentId: {{ $appointment->id }} })">
                         {{ __('common.delete') }}
                     </flux:button>

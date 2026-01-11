@@ -16,6 +16,7 @@ return [
     'remove' => 'Kaldır',
     'view' => 'Görüntüle',
     'send' => 'Gönder',
+    'back' => 'Geri',
 
     // Search & Filter
     'search' => 'Ara',

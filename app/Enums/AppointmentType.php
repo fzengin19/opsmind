@@ -30,4 +30,14 @@ enum AppointmentType: string
             self::Break => '#f59e0b',
         };
     }
+
+    public function icon(): string
+    {
+        return match ($this) {
+            self::Meeting => 'users',
+            self::Call => 'phone',
+            self::Focus => 'bolt',
+            self::Break => 'pause',
+        };
+    }
 }

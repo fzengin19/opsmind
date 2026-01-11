@@ -14,8 +14,22 @@ new #[Layout('components.layouts.app')] class extends Component {
     #[Url]
     public string $view = 'month';
 
-    #[Url]
+    #[Url(history: true, keep: true)]
     public string $date = '';
+
+    protected function queryString()
+    {
+        return [
+            'date' => [
+                'except' => '',
+                'history' => true,
+                'keep' => true,
+            ],
+            'view' => [
+                'except' => 'month',
+            ],
+        ];
+    }
 
     public array $visibleCalendarIds = [];
 
@@ -29,14 +43,14 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->visibleCalendarIds = $this->accessibleCalendars->pluck('id')->toArray();
     }
 
-    public function getCurrentDateProperty(): Carbon
+    public function getCurrentDate(): Carbon
     {
         return Carbon::parse($this->date);
     }
 
     public function next(): void
     {
-        $date = $this->currentDate->copy();
+        $date = $this->getCurrentDate()->copy();
         match ($this->view) {
             'month' => $date->addMonth(),
             'week' => $date->addWeek(),
@@ -47,7 +61,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function prev(): void
     {
-        $date = $this->currentDate->copy();
+        $date = $this->getCurrentDate()->copy();
         match ($this->view) {
             'month' => $date->subMonth(),
             'week' => $date->subWeek(),
@@ -69,8 +83,8 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function with(CalendarService $service): array
     {
         $days = match ($this->view) {
-            'month' => $service->getMonthGrid($this->currentDate),
-            'week', 'day' => $service->getWeekGrid($this->currentDate),
+            'month' => $service->getMonthGrid($this->getCurrentDate()),
+            'week', 'day' => $service->getWeekGrid($this->getCurrentDate()),
             default => [],
         };
 
@@ -86,10 +100,10 @@ new #[Layout('components.layouts.app')] class extends Component {
         
         if ($company) {
             if (in_array($this->view, ['week', 'day'])) {
-                $events = $service->getAppointmentsForWeek($this->currentDate, $company->id)->toArray();
+                $events = $service->getAppointmentsForWeek($this->getCurrentDate(), $company->id)->toArray();
             }
             if ($this->view === 'month') {
-                $monthEvents = $service->getAppointmentsForMonth($this->currentDate, $company->id);
+                $monthEvents = $service->getAppointmentsForMonth($this->getCurrentDate(), $company->id);
             }
         }
 
@@ -133,6 +147,11 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->dispatch('confirm-delete-appointment', appointmentId: $appointmentId);
     }
 
+    public function selectDay(string $date): void
+    {
+        $this->dispatch('open-day-detail', date: $date);
+    }
+
     #[On('calendar-refresh')]
     public function refreshCalendar(): void
     {
@@ -152,12 +171,12 @@ new #[Layout('components.layouts.app')] class extends Component {
             {{-- Dynamic Title --}}
             <flux:heading size="xl">
                 @if($view === 'month')
-                    {{ $this->currentDate->locale('tr')->translatedFormat('F Y') }}
+                    {{ $this->getCurrentDate()->locale('tr')->translatedFormat('F Y') }}
                 @elseif($view === 'week')
-                    {{ $this->currentDate->copy()->startOfWeek()->translatedFormat('d') }} -
-                    {{ $this->currentDate->copy()->endOfWeek()->translatedFormat('d M Y') }}
+                    {{ $this->getCurrentDate()->copy()->startOfWeek()->translatedFormat('d') }} -
+                    {{ $this->getCurrentDate()->copy()->endOfWeek()->translatedFormat('d M Y') }}
                 @else
-                    {{ $this->currentDate->locale('tr')->translatedFormat('d F Y') }}
+                    {{ $this->getCurrentDate()->locale('tr')->translatedFormat('d F Y') }}
                 @endif
             </flux:heading>
 
@@ -171,17 +190,17 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         {{-- Right: View Switcher + New Appointment Button --}}
         <div class="flex items-center gap-3">
-            <div class="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
-                <flux:button :variant="$view === 'month' ? 'primary' : 'ghost'" size="sm" wire:click="setView('month')">
+                <flux:button variant="primary" size="sm" class="cursor-default">
                     {{ __('calendar.month') }}
                 </flux:button>
+                <!--
                 <flux:button :variant="$view === 'week' ? 'primary' : 'ghost'" size="sm" wire:click="setView('week')">
                     {{ __('calendar.week') }}
                 </flux:button>
                 <flux:button :variant="$view === 'day' ? 'primary' : 'ghost'" size="sm" wire:click="setView('day')">
                     {{ __('calendar.day') }}
                 </flux:button>
-            </div>
+                -->
 
             <flux:button variant="primary" icon="plus" wire:click="openNewAppointment">
                 {{ __('calendar.new_appointment') }}
@@ -193,7 +212,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     {{-- Calendar Grid Container --}}
     <div
-        class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm overflow-hidden">
+        class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm overflow-hidden relative">
 
         @if($view === 'month')
             {{-- Day Headers --}}
@@ -209,7 +228,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             {{-- Month Grid --}}
             <div class="grid grid-cols-7">
                 @foreach($days as $day)
-                    <div class="min-h-[80px] sm:min-h-[100px] p-1 sm:p-2 border-b border-r border-zinc-200 dark:border-zinc-700 transition
+                    <div wire:key="{{ $day['date']->toDateString() }}" class="relative min-h-[80px] sm:min-h-[100px] p-1 sm:p-2 border-b border-r border-zinc-200 dark:border-zinc-700 transition
                                 {{ $day['isCurrentMonth']
                     ? 'bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700/30'
                     : 'bg-zinc-50/50 dark:bg-zinc-900/30' }}">
@@ -224,15 +243,23 @@ new #[Layout('components.layouts.app')] class extends Component {
                             {{ $day['day'] }}
                         </span>
 
+
                         {{-- Event Chips --}}
                         @php
                             $dateKey = $day['date']->toDateString();
                             $dayEvents = $monthEvents[$dateKey] ?? [];
                         @endphp
+
+                        {{-- Day Click Area (Entire Cell) - BACKEND DISPATCH for safety --}}
+                        <div 
+                            wire:click="selectDay('{{ $day['date']->toDateString() }}')"
+                            class="absolute inset-0 z-0 cursor-pointer"
+                        ></div>
+
                         @if(count($dayEvents) > 0)
-                            <div class="mt-1 space-y-0.5">
+                            <div class="mt-1 space-y-0.5 relative z-10 pointer-events-none">
                                 @foreach(array_slice($dayEvents, 0, 3) as $event)
-                                    <div class="text-[10px] truncate px-1 py-0.5 rounded cursor-pointer transition
+                                    <div wire:key="event-{{ $event['id'] }}" class="text-[10px] truncate px-1 py-0.5 rounded cursor-pointer transition
                                         @switch($event['color'])
                                             @case('primary')
                                                 bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300
@@ -356,13 +383,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                     {{-- Single Day Header --}}
                     <div class="flex-1 py-3 sm:py-4 text-center bg-zinc-50 dark:bg-zinc-900">
                         <div class="text-sm text-zinc-500 dark:text-zinc-400">
-                            {{ $this->currentDate->locale('tr')->translatedFormat('l') }}
+                            {{ $this->getCurrentDate()->locale('tr')->translatedFormat('l') }}
                         </div>
-                        <div class="text-2xl sm:text-3xl font-bold {{ $this->currentDate->isToday() ? 'text-primary-600 dark:text-primary-400' : 'text-zinc-900 dark:text-zinc-100' }}">
-                            {{ $this->currentDate->day }}
+                        <div class="text-2xl sm:text-3xl font-bold {{ $this->getCurrentDate()->isToday() ? 'text-primary-600 dark:text-primary-400' : 'text-zinc-900 dark:text-zinc-100' }}">
+                            {{ $this->getCurrentDate()->day }}
                         </div>
                         <div class="text-xs text-zinc-400 dark:text-zinc-500">
-                            {{ $this->currentDate->locale('tr')->translatedFormat('F Y') }}
+                            {{ $this->getCurrentDate()->locale('tr')->translatedFormat('F Y') }}
                         </div>
                     </div>
                 </div>
@@ -388,7 +415,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         
                         {{-- Events (filter by current day's weekday) --}}
                         @php
-                            $currentDayIndex = $this->currentDate->dayOfWeekIso - 1;
+                            $currentDayIndex = $this->getCurrentDate()->dayOfWeekIso - 1;
                         @endphp
                         @foreach($events as $event)
                             @if($event['dayIndex'] === $currentDayIndex)
@@ -437,8 +464,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 
             </div>
         @endif
-
-
+        
+        {{-- Day Detail Overlay --}}
+        <livewire:calendar.day-detail />
 
     </div>
 

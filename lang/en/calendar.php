@@ -48,6 +48,8 @@ return [
     'delete_confirmation' => 'Are you sure you want to delete ":title"?',
     'confirm' => 'Yes, Delete',
     'search_attendees' => 'Search attendees...',
+    'error_attendee_required' => 'Personal events require at least one attendee.',
+    'attendees' => 'Attendees',
     'calendar' => 'Calendar',
     'select_calendar' => 'Select calendar',
     'appointment_title' => 'Title',

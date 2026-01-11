@@ -9,6 +9,7 @@ use App\Actions\Appointments\UpdateAppointmentAction;
 use App\Models\Appointment;
 use App\Models\Calendar;
 use App\Enums\AppointmentType;
+use App\Enums\CalendarType;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -97,6 +98,16 @@ new class extends Component {
         UpdateAppointmentAction $updateAction
     ): void {
         $this->validate();
+        
+        // Validate attendee count based on Calendar Type
+        $calendar = Calendar::find($this->calendar_id);
+        if ($calendar) {
+            $isPersonal = $calendar->type === CalendarType::Personal || $calendar->is_default;
+            if ($isPersonal && empty($this->attendee_user_ids)) {
+                $this->addError('attendee_user_ids', __('calendar.error_attendee_required'));
+                return;
+            }
+        }
 
         $user = auth()->user();
         $company = $user->currentCompany();
@@ -244,11 +255,9 @@ new class extends Component {
                     @foreach($this->selectedUsers as $user)
                         <flux:badge size="sm" class="gap-1 pr-1">
                             {{ $user->name }}
-                            @if($user->id !== auth()->id())
-                                <div wire:click="removeAttendee({{ $user->id }})" class="cursor-pointer hover:text-red-500">
-                                    <flux:icon name="x-mark" size="xs" />
-                                </div>
-                            @endif
+                            <div wire:click="removeAttendee({{ $user->id }})" class="cursor-pointer hover:text-red-500">
+                                <flux:icon name="x-mark" size="xs" />
+                            </div>
                         </flux:badge>
                     @endforeach
                 </div>
@@ -276,6 +285,7 @@ new class extends Component {
                         </div>
                     @endif
                 </div>
+                <flux:error name="attendee_user_ids" />
             </div>
 
             {{-- Açıklama --}}

@@ -57,6 +57,7 @@ return [
     'location' => 'Konum',
     'location_placeholder' => 'Toplantı yeri veya link',
     'search_attendees' => 'Katılımcı ara...',
+    'error_attendee_required' => 'Kişisel etkinliklerde en az bir katılımcı gereklidir.',
     'attendees' => 'Katılımcılar',
     'description' => 'Açıklama',
 

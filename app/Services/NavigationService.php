@@ -17,6 +17,12 @@ class NavigationService
                     'icon' => 'home',
                     'active' => request()->routeIs('dashboard'),
                 ],
+                [
+                    'label' => __('navigation.calendar'),
+                    'route' => 'calendar.index',
+                    'icon' => 'calendar',
+                    'active' => request()->routeIs('calendar.*'),
+                ],
             ],
             'management' => $this->getManagementLinks(),
         ];

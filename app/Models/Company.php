@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Calendar;
 
 #[ObservedBy([CompanyObserver::class])]
 class Company extends Model
@@ -135,6 +136,10 @@ class Company extends Model
     {
         return $this->hasMany(Appointment::class);
     }
+
+
+
+
 
     public function tasks(): HasMany
     {

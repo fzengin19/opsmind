@@ -28,20 +28,12 @@ class CreateAppointmentAction
                 'created_by' => $user->id,
             ]);
 
-            // Oluşturanı otomatik katılımcı olarak ekle
-            $appointment->attendees()->create([
-                'user_id' => $user->id,
-                'status' => AttendeeStatus::Accepted,
-            ]);
-
-            // Seçilen diğer kullanıcıları ekle (otomatik onaylı)
+            // Seçilen kullanıcıları ekle (otomatik onaylı)
             foreach ($data->attendee_user_ids ?? [] as $userId) {
-                if ($userId !== $user->id) {
-                    $appointment->attendees()->create([
-                        'user_id' => $userId,
-                        'status' => AttendeeStatus::Accepted,
-                    ]);
-                }
+                $appointment->attendees()->create([
+                    'user_id' => $userId,
+                    'status' => AttendeeStatus::Accepted,
+                ]);
             }
 
             return $appointment;

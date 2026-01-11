@@ -88,7 +88,7 @@ class CalendarService
             $query->where('calendar_id', $calendarId);
         }
 
-        return $query->orderBy('start_at')
+        $appointments = $query->orderBy('start_at')
             ->with('calendar')
             ->get()
             ->map(function ($apt) use ($weekStart) {
@@ -100,12 +100,67 @@ class CalendarService
                     'dayIndex' => $dayIndex,
                     'startHour' => $apt->start_at->hour,
                     'startMinute' => $apt->start_at->minute,
+                    'endHour' => $apt->end_at->hour,
+                    'endMinute' => $apt->end_at->minute,
                     'durationMinutes' => $apt->start_at->diffInMinutes($apt->end_at),
                     'color' => $apt->calendar?->color ?? $apt->type->color(),
                     'type' => $apt->type->value,
                     'calendarId' => $apt->calendar_id,
+                    // Default values, will be recalculated for overlaps
+                    'width' => 100,
+                    'left' => 0,
                 ];
             });
+
+        // Calculate overlaps
+        $appointments = $appointments->keyBy('id')->toArray(); // Use keyBy for direct access
+        $byDay = collect($appointments)->groupBy('dayIndex');
+
+        foreach ($byDay as $dayIndex => $dayEvents) {
+            $dayEvents = $dayEvents->sortBy('startHour')->values();
+            $clusters = [];
+
+            // Group overlapping events
+            foreach ($dayEvents as $event) {
+                $placed = false;
+                foreach ($clusters as &$cluster) {
+                    // Check if this event overlaps with the cluster's time range
+                    $clusterStart = $cluster['start'];
+                    $clusterEnd = $cluster['end'];
+                    $eventStart = ($event['startHour'] * 60) + $event['startMinute'];
+                    $eventEnd = $eventStart + $event['durationMinutes'];
+
+                    if ($eventStart < $clusterEnd) { // Overlap detected
+                        $cluster['events'][] = $event['id'];
+                        $cluster['end'] = max($clusterEnd, $eventEnd);
+                        $placed = true;
+                        break;
+                    }
+                }
+                unset($cluster); // Break reference
+
+                if (!$placed) {
+                    $clusters[] = [
+                        'start' => ($event['startHour'] * 60) + $event['startMinute'],
+                        'end' => ($event['startHour'] * 60) + $event['startMinute'] + $event['durationMinutes'],
+                        'events' => [$event['id']],
+                    ];
+                }
+            }
+
+            // Assign width and left based on clusters
+            foreach ($clusters as $cluster) {
+                $count = count($cluster['events']);
+                foreach ($cluster['events'] as $index => $eventId) {
+                    if (isset($appointments[$eventId])) {
+                        $appointments[$eventId]['width'] = 100 / $count;
+                        $appointments[$eventId]['left'] = ($index * (100 / $count));
+                    }
+                }
+            }
+        }
+
+        return collect($appointments)->values(); // Return as updated collection
     }
 
     /**

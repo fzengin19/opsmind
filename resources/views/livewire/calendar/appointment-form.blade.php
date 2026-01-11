@@ -219,6 +219,13 @@ new class extends Component {
                 <flux:button variant="ghost" type="button" wire:click="$set('showModal', false)">
                     {{ __('common.cancel') }}
                 </flux:button>
+                
+                @if($appointment)
+                    <flux:button variant="danger" type="button" 
+                        wire:click="$dispatch('open-delete-confirmation', { appointmentId: {{ $appointment->id }} })">
+                        {{ __('common.delete') }}
+                    </flux:button>
+                @endif
                 <flux:button type="submit" variant="primary">
                     {{ $appointment ? __('common.update') : __('common.create') }}
                 </flux:button>

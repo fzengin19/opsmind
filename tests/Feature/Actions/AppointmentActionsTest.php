@@ -39,7 +39,7 @@ describe('CreateAppointmentAction', function () {
             all_day: false,
             location: 'Zoom',
             description: 'Test description',
-            attendee_user_ids: [$otherUser->id],
+            attendee_user_ids: [$this->user->id, $otherUser->id],
         );
 
         $action = new CreateAppointmentAction();
@@ -58,7 +58,7 @@ describe('CreateAppointmentAction', function () {
         expect($creatorAttendee->status)->toBe(AttendeeStatus::Accepted);
     });
 
-    it('does not duplicate creator in attendees', function () {
+    it('creates appointment with single attendee when only creator selected', function () {
         $data = new AppointmentData(
             id: null,
             company_id: $this->company->id,
@@ -67,14 +67,15 @@ describe('CreateAppointmentAction', function () {
             type: AppointmentType::Meeting,
             start_at: Carbon::now()->addDay(),
             end_at: Carbon::now()->addDay()->addHour(),
-            attendee_user_ids: [$this->user->id], // Creator also in list
+            attendee_user_ids: [$this->user->id], // Creator explicitly selected
         );
 
         $action = new CreateAppointmentAction();
         $appointment = $action->execute($data, $this->user);
 
-        // Should only have 1 attendee (creator), not duplicated
+        // Should have exactly 1 attendee
         expect($appointment->attendees)->toHaveCount(1);
+        expect($appointment->attendees->first()->user_id)->toBe($this->user->id);
     });
 });
 

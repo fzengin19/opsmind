@@ -395,26 +395,37 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @php
                                     $top = ($event['startHour'] * 60) + $event['startMinute'];
                                     $height = max(30, $event['durationMinutes']);
+                                    
+                                    // Hex color handling
+                                    $hex = $event['color'] ?? '#3b82f6';
+                                    
+                                    // Convert hex to rgb for opacity
+                                    $hex = ltrim($hex, '#');
+                                    if(strlen($hex) == 3) {
+                                        $r = hexdec(substr($hex,0,1).substr($hex,0,1));
+                                        $g = hexdec(substr($hex,1,1).substr($hex,1,1));
+                                        $b = hexdec(substr($hex,2,1).substr($hex,2,1));
+                                    } else {
+                                        $r = hexdec(substr($hex,0,2));
+                                        $g = hexdec(substr($hex,2,2));
+                                        $b = hexdec(substr($hex,4,2));
+                                    }
+                                    $bg = "rgba($r, $g, $b, 0.15)";
+                                    $border = "rgba($r, $g, $b, 0.5)";
+                                    $text = "rgb($r, $g, $b)"; // or standard text color
                                 @endphp
                                 <div 
-                                    class="absolute inset-x-2 z-10 rounded-lg px-3 py-2 text-sm font-medium overflow-hidden cursor-pointer transition-all border hover:opacity-80
-                                    @switch($event['color'])
-                                        @case('primary')
-                                            bg-primary-50 border-primary-200 text-primary-700 dark:bg-primary-900/30 dark:border-primary-700 dark:text-primary-300
-                                            @break
-                                        @case('success')
-                                            bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-emerald-300
-                                            @break
-                                        @case('warning')
-                                            bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-300
-                                            @break
-                                        @case('danger')
-                                            bg-rose-50 border-rose-200 text-rose-700 dark:bg-rose-900/30 dark:border-rose-700 dark:text-rose-300
-                                            @break
-                                        @default
-                                            bg-zinc-50 border-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-300
-                                    @endswitch"
-                                    style="top: {{ $top }}px; height: {{ $height }}px;">
+                                    wire:click="$dispatch('open-appointment-form', { appointmentId: {{ $event['id'] }} })"
+                                    class="absolute z-10 rounded-lg px-2 py-1 text-xs font-medium overflow-hidden cursor-pointer transition-all border hover:z-20 hover:shadow-md"
+                                    style="
+                                        top: {{ $top }}px; 
+                                        height: {{ $height }}px; 
+                                        left: {{ $event['left'] }}%; 
+                                        width: {{ $event['width'] }}%;
+                                        background-color: {{ $bg }};
+                                        border-color: {{ $border }};
+                                        color: {{ $text }};
+                                    ">
                                     <span class="line-clamp-3">{{ $event['title'] }}</span>
                                 </div>
 

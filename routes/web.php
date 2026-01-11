@@ -9,8 +9,6 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-// Temp Calendar Route
-Volt::route('/calendar-test', 'calendar.index')->name('calendar.test');
 
 // Google OAuth routes
 Route::get('/auth/google', [SocialiteController::class, 'redirect'])->name('auth.google');
@@ -56,6 +54,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('team', 'team.index')
         ->middleware(['ensure.has.company'])
         ->name('team.index');
+
 
     // Calendar (requires company)
     Volt::route('calendar', 'calendar.index')

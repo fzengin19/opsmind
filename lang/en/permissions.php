@@ -1,36 +1,27 @@
 <?php
 
-return [
-    // Company
-    'company.manage' => 'Manage Company Settings',
+declare(strict_types=1);
 
-    // Users
+return [
+    'company.manage' => 'Manage Company Settings',
     'user.view' => 'View Users',
     'user.create' => 'Create User',
     'user.update' => 'Edit User',
     'user.delete' => 'Delete User',
     'user.invite' => 'Invite User',
-
-    // Contacts
     'contact.view' => 'View Contacts',
     'contact.create' => 'Create Contact',
     'contact.update' => 'Edit Contact',
     'contact.delete' => 'Delete Contact',
-
-    // Appointments
     'appointment.view' => 'View Calendar',
-    'appointment.create' => 'Create Appointment',
-    'appointment.update' => 'Edit Appointment',
-    'appointment.delete' => 'Delete Appointment',
-
-    // Tasks
+    'appointment.create' => 'Create Event',
+    'appointment.update' => 'Edit Event',
+    'appointment.delete' => 'Delete Event',
     'task.view' => 'View Tasks',
     'task.create' => 'Create Task',
     'task.update' => 'Edit Task',
     'task.delete' => 'Delete Task',
     'task.assign' => 'Assign Task',
-
-    // Roles
     'role.view' => 'View Roles',
     'role.create' => 'Create Role',
     'role.update' => 'Edit Role',

@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 return [
-    // Buttons & Actions
     'save' => 'Save',
     'cancel' => 'Cancel',
     'delete' => 'Delete',
@@ -17,24 +16,16 @@ return [
     'view' => 'View',
     'send' => 'Send',
     'back' => 'Back',
-
-    // Search & Filter
     'search' => 'Search',
     'filter' => 'Filter',
     'clear' => 'Clear',
-
-    // Status
     'loading' => 'Loading...',
     'saving' => 'Saving...',
     'success' => 'Success',
     'error' => 'Error',
-
-    // Confirmation
     'yes' => 'Yes',
     'no' => 'No',
     'are_you_sure' => 'Are you sure?',
-
-    // Common Labels
     'actions' => 'Actions',
     'status' => 'Status',
     'type' => 'Type',
@@ -47,15 +38,11 @@ return [
     'description' => 'Description',
     'notes' => 'Notes',
     'tags' => 'Tags',
-
-    // Pagination
     'showing' => 'Showing',
     'of' => 'of',
     'results' => 'results',
     'previous' => 'Previous',
     'next' => 'Next',
-
-    // Empty States
     'no_results' => 'No results found.',
     'no_data' => 'No data yet.',
 ];

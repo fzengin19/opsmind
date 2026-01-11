@@ -16,7 +16,6 @@ return [
         'email' => 'Email adresi',
         'password' => 'Şifre',
     ],
-
     'register' => [
         'title' => 'Hesap Oluştur',
         'description' => 'Hesabınızı oluşturmak için bilgilerinizi girin',
@@ -29,7 +28,6 @@ return [
         'password' => 'Şifre',
         'password_confirmation' => 'Şifre Tekrar',
     ],
-
     'password' => [
         'forgot_title' => 'Şifremi Unuttum',
         'forgot_description' => 'Şifre sıfırlama linki almak için email adresinizi girin',
@@ -42,14 +40,12 @@ return [
         'confirm_description' => 'Bu, uygulamanın güvenli bir alanıdır. Devam etmek için şifrenizi onaylayın.',
         'confirm_button' => 'Onayla',
     ],
-
     'verify' => [
         'title' => 'Email Doğrulama',
         'description' => 'Lütfen size gönderdiğimiz linke tıklayarak email adresinizi doğrulayın.',
         'resend' => 'Doğrulama emailini tekrar gönder',
         'sent' => 'Kayıt sırasında verdiğiniz email adresine yeni bir doğrulama linki gönderildi.',
     ],
-
     '2fa' => [
         'code_title' => 'Kimlik Doğrulama Kodu',
         'code_description' => 'Authenticator uygulamanızın verdiği doğrulama kodunu girin.',
@@ -60,6 +56,5 @@ return [
         'use_recovery' => 'kurtarma kodu ile giriş yapın',
         'use_auth_code' => 'kimlik doğrulama kodu ile giriş yapın',
     ],
-
     'logout' => 'Çıkış Yap',
 ];

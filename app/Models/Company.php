@@ -141,6 +141,11 @@ class Company extends Model
 
 
 
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
+    }
+
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);

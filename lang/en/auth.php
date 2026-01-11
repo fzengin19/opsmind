@@ -9,14 +9,13 @@ return [
         'button' => 'Log in',
         'remember' => 'Remember me',
         'forgot_password' => 'Forgot your password?',
-        'no_account' => "Don't have an account?",
+        'no_account' => 'Don\'t have an account?',
         'sign_up' => 'Sign up',
         'with_google' => 'Continue with Google',
         'or' => 'or',
         'email' => 'Email address',
         'password' => 'Password',
     ],
-
     'register' => [
         'title' => 'Create an account',
         'description' => 'Enter your details below to create your account',
@@ -29,7 +28,6 @@ return [
         'password' => 'Password',
         'password_confirmation' => 'Confirm password',
     ],
-
     'password' => [
         'forgot_title' => 'Forgot password',
         'forgot_description' => 'Enter your email to receive a password reset link',
@@ -42,14 +40,12 @@ return [
         'confirm_description' => 'This is a secure area of the application. Please confirm your password before continuing.',
         'confirm_button' => 'Confirm',
     ],
-
     'verify' => [
         'title' => 'Email Verification',
         'description' => 'Please verify your email address by clicking on the link we just emailed to you.',
         'resend' => 'Resend verification email',
         'sent' => 'A new verification link has been sent to the email address you provided during registration.',
     ],
-
     '2fa' => [
         'code_title' => 'Authentication Code',
         'code_description' => 'Enter the authentication code provided by your authenticator application.',
@@ -60,6 +56,5 @@ return [
         'use_recovery' => 'login using a recovery code',
         'use_auth_code' => 'login using an authentication code',
     ],
-
     'logout' => 'Log out',
 ];

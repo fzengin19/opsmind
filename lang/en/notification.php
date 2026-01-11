@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     'invitation' => [
-        'subject' => "You've been invited to :company",
+        'subject' => 'You\'ve been invited to :company',
         'greeting' => 'Hello!',
         'line1' => ':inviter has invited you to join the :company team.',
         'role' => 'Role: :role',

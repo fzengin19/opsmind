@@ -5,6 +5,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use App\Data\AppointmentData;
 use App\Actions\Appointments\CreateAppointmentAction;
+use App\Actions\Appointments\DeleteAppointmentAction;
 use App\Actions\Appointments\UpdateAppointmentAction;
 use App\Models\Appointment;
 use App\Models\Calendar;
@@ -98,7 +99,7 @@ new class extends Component {
         UpdateAppointmentAction $updateAction
     ): void {
         $this->validate();
-        
+
         // Validate attendee count based on Calendar Type
         $calendar = Calendar::find($this->calendar_id);
         if ($calendar) {
@@ -133,6 +134,16 @@ new class extends Component {
             $this->authorize('create', Appointment::class);
             $createAction->execute($data, $user);
         }
+
+        $this->showModal = false;
+        $this->dispatch('calendar-refresh');
+    }
+
+    public function delete(DeleteAppointmentAction $action): void
+    {
+        $this->authorize('delete', $this->appointment);
+
+        $action->execute($this->appointment);
 
         $this->showModal = false;
         $this->dispatch('calendar-refresh');
@@ -209,7 +220,7 @@ new class extends Component {
 <flux:modal wire:model="showModal" class="max-w-2xl">
     <div class="p-6 space-y-6">
         <flux:heading size="lg">
-            {{ $appointment ? __('calendar.edit_appointment') : __('calendar.new_appointment') }}
+            {{ $appointment ? __('calendar.edit_event') : __('calendar.new_event') }}
         </flux:heading>
 
         <form wire:submit="save" class="space-y-4">
@@ -222,11 +233,11 @@ new class extends Component {
             </flux:select>
 
             {{-- Başlık --}}
-            <flux:input wire:model.blur="title" label="{{ __('calendar.appointment_title') }}"
-                placeholder="{{ __('calendar.appointment_title_placeholder') }}" required />
+            <flux:input wire:model.blur="title" label="{{ __('calendar.event_title') }}"
+                placeholder="{{ __('calendar.event_title_placeholder') }}" required />
 
             {{-- Tür --}}
-            <flux:select wire:model="type" label="{{ __('calendar.appointment_type') }}" required>
+            <flux:select wire:model="type" label="{{ __('calendar.event_type') }}" required>
                 @foreach(\App\Enums\AppointmentType::cases() as $t)
                     <option value="{{ $t->value }}">{{ $t->label() }}</option>
                 @endforeach
@@ -299,7 +310,8 @@ new class extends Component {
 
                 @if($appointment)
                     <flux:button variant="danger" type="button"
-                        wire:click="$dispatch('open-delete-confirmation', { appointmentId: {{ $appointment->id }} })">
+                        wire:click="delete"
+                        wire:confirm="{{ __('calendar.delete_confirmation', ['title' => $appointment->title]) }}">
                         {{ __('common.delete') }}
                     </flux:button>
                 @endif

@@ -203,7 +203,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 -->
 
             <flux:button variant="primary" icon="plus" wire:click="openNewAppointment">
-                {{ __('calendar.new_appointment') }}
+                {{ __('calendar.new_event') }}
             </flux:button>
         </div>
 

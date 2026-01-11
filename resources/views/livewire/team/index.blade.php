@@ -18,7 +18,18 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
     public function rules(): array
     {
         return [
-            'inviteEmail' => ['required', 'email'],
+            'inviteEmail' => [
+                'required',
+                'email',
+                function ($attribute, $value, $fail) {
+                    if ($this->company->users()->where('email', $value)->exists()) {
+                        $fail(__('team.member_already_exists'));
+                    }
+                    if ($this->company->invitations()->where('email', $value)->whereNull('accepted_at')->exists()) {
+                        $fail(__('team.invitation_already_sent'));
+                    }
+                }
+            ],
             'inviteRole' => ['required', Rule::in($this->availableRoles)],
         ];
     }

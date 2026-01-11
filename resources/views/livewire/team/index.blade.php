@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
 use Spatie\Permission\Models\Role;
+use Livewire\Attributes\Computed;
 use Illuminate\Validation\Rule;
 
 new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Component {
@@ -22,25 +23,32 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
         ];
     }
 
-    public function getCompanyProperty()
+    #[Computed]
+    public function company()
     {
         return Auth::user()->currentCompany();
     }
 
-    public function getUsersProperty()
+    public function with(): array
     {
-        return $this->company->users()->with('roles')->get();
+        setPermissionsTeamId($this->company->id);
+
+        return [
+            'users' => $this->company->users()->with('roles')->get(),
+        ];
     }
 
-    public function getAvailableRolesProperty()
+    #[Computed]
+    public function availableRoles()
     {
         setPermissionsTeamId($this->company->id);
         return Role::where('company_id', $this->company->id)
-            ->where('name', '!=', 'owner') // Owner cannot be assigned
+            ->where('name', '!=', 'owner')
             ->pluck('name');
     }
 
-    public function getPendingInvitationsProperty()
+    #[Computed]
+    public function pendingInvitations()
     {
         return Invitation::where('company_id', $this->company->id)
             ->whereNull('accepted_at')
@@ -48,12 +56,12 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
             ->get();
     }
 
-    public function canManageTeam(): bool
+    #[Computed]
+    public function canManageTeam()
     {
         $user = Auth::user();
         setPermissionsTeamId($this->company->id);
 
-        // Owner can do everything
         if ($user->hasRole('owner')) {
             return true;
         }
@@ -63,7 +71,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
 
     public function sendInvitation(SendInvitationAction $action): void
     {
-        if (!$this->canManageTeam()) {
+        if (!$this->canManageTeam) {
             return;
         }
 
@@ -85,7 +93,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
 
     public function updateRole(int $userId, string $roleName): void
     {
-        if (!$this->canManageTeam()) {
+        if (!$this->canManageTeam) {
             return;
         }
 
@@ -110,7 +118,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
 
     public function removeUser(int $userId): void
     {
-        if (!$this->canManageTeam()) {
+        if (!$this->canManageTeam) {
             return;
         }
 
@@ -135,7 +143,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
 
     public function cancelInvitation(int $invitationId): void
     {
-        if (!$this->canManageTeam()) {
+        if (!$this->canManageTeam) {
             return;
         }
 
@@ -162,7 +170,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
                 <flux:text class="text-zinc-500">{{ $this->company->name }} {{ __('team.members') }}</flux:text>
             </div>
 
-            @if ($this->canManageTeam())
+            @if ($this->canManageTeam)
                 <flux:button variant="primary" wire:click="$set('showInviteModal', true)" class="w-full sm:w-auto">
                     {{ __('team.invite_button') }}
                 </flux:button>
@@ -171,7 +179,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
 
         <!-- Team Members - Mobile Cards -->
         <div class="space-y-3 md:hidden">
-            @foreach ($this->users as $user)
+            @foreach ($users as $user)
                 @php
                     setPermissionsTeamId($this->company->id);
                     $userRole = $user->roles->first();
@@ -192,7 +200,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
                                 <div class="text-sm truncate text-zinc-500">{{ $user->email }}</div>
                             </div>
                         </div>
-                        @if ($this->canManageTeam() && $user->id !== auth()->id() && $roleName !== 'owner')
+                        @if ($this->canManageTeam && $user->id !== auth()->id() && $roleName !== 'owner')
                             <flux:dropdown>
                                 <flux:button variant="ghost" size="sm" icon="ellipsis-vertical" />
                                 <flux:menu>
@@ -234,13 +242,13 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
                         <th class="px-4 py-3 text-sm font-medium text-left text-zinc-700 dark:text-zinc-300">
                             {{ __('team.joined_at') }}
                         </th>
-                        @if ($this->canManageTeam())
+                        @if ($this->canManageTeam)
                             <th class="px-4 py-3"></th>
                         @endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
-                    @foreach ($this->users as $user)
+                    @foreach ($users as $user)
                         @php
                             setPermissionsTeamId($this->company->id);
                             $userRole = $user->roles->first();

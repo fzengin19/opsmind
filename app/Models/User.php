@@ -59,7 +59,7 @@ class User extends Authenticatable
      */
     public function currentCompany(): ?Company
     {
-        return $this->companies()->first();
+        return $this->companies->first();
     }
 
     /**
@@ -67,7 +67,7 @@ class User extends Authenticatable
      */
     public function hasCompany(): bool
     {
-        return $this->companies()->exists();
+        return $this->companies->isNotEmpty();
     }
 
     /**
@@ -95,7 +95,7 @@ class User extends Authenticatable
      */
     public function currentDepartment(): ?Department
     {
-        $pivot = $this->companies()->first()?->pivot;
+        $pivot = $this->currentCompany()?->pivot;
 
         if (! $pivot || ! $pivot->department_id) {
             return null;

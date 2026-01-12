@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Gate;
 new #[Layout('components.layouts.app')] class extends Component {
     public function mount()
     {
+        setPermissionsTeamId(auth()->user()->currentCompany()->id);
         Gate::authorize('role.view');
     }
 
@@ -88,7 +89,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                 {{ $role->name }}
                                 @if(strtolower($role->name) === 'owner')
-                                    <flux:badge size="sm" color="zinc" class="ml-2">{{ __('settings.roles.system_role') }}</flux:badge>
+                                    <flux:badge size="sm" color="zinc" class="ml-2">{{ __('settings.roles.system_role') }}
+                                    </flux:badge>
                                 @endif
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-zinc-500 dark:text-zinc-400">
@@ -108,7 +110,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 wire:confirm="{{ __('settings.roles.delete_confirm_title') }}" />
                                         @endcan
                                     @else
-                                        <span class="text-zinc-400 text-sm italic">{{ __('settings.roles.protected_role') }}</span>
+                                        <span
+                                            class="text-zinc-400 text-sm italic">{{ __('settings.roles.protected_role') }}</span>
                                     @endif
                                 </div>
                             </td>

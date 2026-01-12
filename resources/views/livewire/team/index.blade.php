@@ -15,6 +15,11 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
     public string $inviteRole = '';
     public bool $showInviteModal = false;
 
+    public function mount()
+    {
+        $this->inviteRole = $this->availableRoles->first() ?? '';
+    }
+
     public function rules(): array
     {
         return [
@@ -98,6 +103,13 @@ new #[\Livewire\Attributes\Layout('components.layouts.app')] class extends Compo
         $this->inviteEmail = '';
         $this->inviteRole = $this->availableRoles->first() ?? '';
         $this->showInviteModal = false;
+
+        $this->dispatch(
+            'notify',
+            type: 'success',
+            title: __('invitation.sent_title'),
+            message: __('invitation.sent_message')
+        );
 
         $this->dispatch('invitation-sent');
     }

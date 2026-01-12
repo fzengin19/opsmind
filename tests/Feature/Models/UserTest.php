@@ -77,6 +77,8 @@ describe('User Model', function () {
 
         $company->addUser($user, 'member');
 
+        $user->refresh();
+
         expect($user->hasCompany())->toBeTrue();
     });
 });

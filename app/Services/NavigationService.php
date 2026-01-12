@@ -33,7 +33,7 @@ class NavigationService
         $links = [];
 
         // Team Management
-        if (auth()->user()->can('viewAny', User::class)) {
+        if (auth()->user()->can('user.view')) {
             $links[] = [
                 'label' => __('team.title'),
                 'route' => 'team.index',

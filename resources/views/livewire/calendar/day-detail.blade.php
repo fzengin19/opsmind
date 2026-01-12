@@ -7,8 +7,14 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use App\Services\CalendarService;
 
+use Livewire\Attributes\Reactive;
+
 new class extends Component {
     public ?string $date = null; // Passed as 'Y-m-d'
+    
+    #[Reactive]
+    public array $calendarIds = [];
+
     public bool $isOpen = false;
 
     // Triggered by event from index component
@@ -50,7 +56,8 @@ new class extends Component {
 
         return app(CalendarService::class)->getDayAgenda(
             Carbon::parse($this->date),
-            $company->id
+            $company->id,
+            $this->calendarIds
         );
     }
 }; ?>
@@ -101,17 +108,48 @@ new class extends Component {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 @foreach($this->agenda as $item)
                     @if($item['type'] === 'event')
-                        @php $event = $item['data']; @endphp
+                        @php 
+                            $event = $item['data']; 
+                            
+                            $color = $event->calendar?->color ?? $event->type->color();
+                            $isHex = str_starts_with($color, '#');
+                            
+                            $semanticClasses = match ($color) {
+                                'primary' => 'bg-primary-50 border-primary-200 text-primary-700 dark:bg-primary-900/30 dark:border-primary-700 dark:text-primary-300',
+                                'success' => 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-emerald-300',
+                                'warning' => 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-300',
+                                'danger' => 'bg-rose-50 border-rose-200 text-rose-700 dark:bg-rose-900/30 dark:border-rose-700 dark:text-rose-300',
+                                'zinc' => 'bg-zinc-50 border-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-300',
+                                default => 'bg-zinc-50 border-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:border-zinc-600 dark:text-zinc-300',
+                            };
+                            
+                            $style = '';
+                            $classes = 'relative group p-3 rounded-lg border hover:shadow-md transition cursor-pointer flex flex-col gap-1 ';
+                            
+                            if ($isHex) {
+                                $style = "background-color: {$color}10; border-color: {$color}50; color: {$color}; border-left: 4px solid {$color};";
+                                $classes .= 'bg-opacity-10'; // Fallback
+                            } else {
+                                $classes .= $semanticClasses . ' border-l-4';
+                                // Semantic borders need explicit border-l-color if using classes, which standard classes handle? 
+                                // Actually standard classes like border-primary-200 handle all borders. 
+                                // Let's make sure we have a strong left border for consistency with month view logic if we want, 
+                                // but Month View currently uses full opacity+border+text.
+                                // The new Month View design uses: background-color: hex20; color: hex; border-left: 2px solid hex;
+                                // Let's match that style here but for a card.
+                            }
+                        @endphp
+                        
                         <div wire:key="agenda-event-{{ $event->id }}"
-                            wire:click="$dispatch('open-appointment-form', { appointmentId: {{ $event->id }} })" class="relative group p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:shadow-md transition cursor-pointer flex flex-col gap-1
-                                                                            @if($event->calendar?->color) border-l-4 @endif"
-                            style="@if($event->calendar?->color) border-left-color: {{ $event->calendar->color }}; @endif">
+                            wire:click="$dispatch('open-appointment-form', { appointmentId: {{ $event->id }} })" 
+                            class="{{ $classes }}"
+                            style="{{ $style }}">
                             <div class="flex justify-between items-start">
-                                <span class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-1">
+                                <span class="text-sm font-semibold truncate w-full pr-2" style="@if($isHex) color: {{ $color }} @endif">
                                     {{ $event->title }}
                                 </span>
                                 {{-- Type Icon --}}
-                                <flux:icon :name="$event->type->icon()" class="size-4 text-zinc-400" />
+                                <flux:icon :name="$event->type->icon()" class="size-4 opacity-70" />
                             </div>
 
                             <div class="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2 mt-1">

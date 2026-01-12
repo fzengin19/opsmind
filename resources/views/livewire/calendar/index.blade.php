@@ -100,10 +100,10 @@ new #[Layout('components.layouts.app')] class extends Component {
         
         if ($company) {
             if (in_array($this->view, ['week', 'day'])) {
-                $events = $service->getAppointmentsForWeek($this->getCurrentDate(), $company->id)->toArray();
+                $events = $service->getAppointmentsForWeek($this->getCurrentDate(), $company->id, $this->visibleCalendarIds)->toArray();
             }
             if ($this->view === 'month') {
-                $monthEvents = $service->getAppointmentsForMonth($this->getCurrentDate(), $company->id);
+                $monthEvents = $service->getAppointmentsForMonth($this->getCurrentDate(), $company->id, $this->visibleCalendarIds);
             }
         }
 
@@ -210,9 +210,33 @@ new #[Layout('components.layouts.app')] class extends Component {
     </div>
 
 
-    {{-- Calendar Grid Container --}}
-    <div
-        class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm overflow-hidden relative">
+    <div class="flex flex-col lg:flex-row gap-6">
+
+        {{-- Sidebar --}}
+        <div class="w-full lg:w-64 flex-shrink-0 space-y-6">
+            <div class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 shadow-sm">
+                <flux:heading size="sm" class="mb-3">{{ __('calendar.my_calendars') }}</flux:heading>
+                <div class="space-y-2">
+                    @foreach($this->accessibleCalendars as $calendar)
+                        <label class="flex items-center gap-2 cursor-pointer group select-none">
+                            <input
+                                type="checkbox"
+                                wire:click="toggleCalendar({{ $calendar->id }})"
+                                @checked(in_array($calendar->id, $visibleCalendarIds))
+                                class="rounded border-zinc-300 text-primary-600 shadow-sm focus:ring-primary-500 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:ring-primary-600"
+                            >
+                            <span class="size-3 rounded-full flex-shrink-0" style="background-color: {{ $calendar->color }}"></span>
+                            <span class="text-sm text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition truncate">
+                                {{ $calendar->name }}
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        {{-- Calendar Grid Container --}}
+        <div class="flex-1 min-w-0 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm overflow-hidden relative">
 
         @if($view === 'month')
             {{-- Day Headers --}}
@@ -259,20 +283,35 @@ new #[Layout('components.layouts.app')] class extends Component {
                         @if(count($dayEvents) > 0)
                             <div class="mt-1 space-y-0.5 relative z-10 pointer-events-none">
                                 @foreach(array_slice($dayEvents, 0, 3) as $event)
-                                    <div wire:key="event-{{ $event['id'] }}" class="text-[10px] truncate px-1 py-0.5 rounded cursor-pointer transition
-                                        @switch($event['color'])
-                                            @case('primary')
-                                                bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300
-                                                @break
-                                            @case('success')
-                                                bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300
-                                                @break
-                                            @case('warning')
-                                                bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300
-                                                @break
-                                            @default
-                                                bg-zinc-100 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300
-                                        @endswitch">
+                                    @php
+                                        $color = $event['color'] ?? 'primary';
+                                        $isHex = str_starts_with($color, '#');
+                                        
+                                        // Semantic classes lookup
+                                        $semanticClasses = match ($color) {
+                                            'primary' => 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300',
+                                            'success' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+                                            'warning' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+                                            'danger' => 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
+                                            'zinc' => 'bg-zinc-100 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300',
+                                            default => 'bg-zinc-100 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300',
+                                        };
+                                        
+                                        $style = '';
+                                        $classes = 'text-[10px] truncate px-1 py-0.5 rounded cursor-pointer transition ';
+                                        
+                                        if ($isHex) {
+                                            // Dynamic Hex Style
+                                            $style = "background-color: {$color}20; color: {$color}; border-left: 2px solid {$color}; padding-left: 4px;";
+                                            $classes .= 'bg-opacity-20';
+                                        } else {
+                                            $classes .= $semanticClasses;
+                                        }
+                                    @endphp
+                                    
+                                    <div wire:key="event-{{ $event['id'] }}" 
+                                         class="{{ $classes }}"
+                                         style="{{ $style }}">
                                         {{ $event['title'] }}
                                     </div>
                                 @endforeach
@@ -466,9 +505,11 @@ new #[Layout('components.layouts.app')] class extends Component {
         @endif
         
         {{-- Day Detail Overlay --}}
-        <livewire:calendar.day-detail />
+        <livewire:calendar.day-detail :calendar-ids="$this->visibleCalendarIds" />
 
-    </div>
+        </div> {{-- End of Calendar Grid Container --}}
+
+    </div> {{-- End of Main Flex Container --}}
 
     {{-- Modals --}}
     <livewire:calendar.appointment-form :calendars="$this->accessibleCalendars" />

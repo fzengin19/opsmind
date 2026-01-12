@@ -76,7 +76,7 @@ class CalendarService
     /**
      * Get appointments for a specific week
      */
-    public function getAppointmentsForWeek(Carbon $date, int $companyId, ?int $calendarId = null): Collection
+    public function getAppointmentsForWeek(Carbon $date, int $companyId, ?array $calendarIds = null): Collection
     {
         $weekStart = $date->copy()->startOfWeek(Carbon::MONDAY);
         $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
@@ -84,8 +84,8 @@ class CalendarService
         $query = Appointment::where('company_id', $companyId)
             ->whereBetween('start_at', [$weekStart, $weekEnd]);
 
-        if ($calendarId !== null) {
-            $query->where('calendar_id', $calendarId);
+        if ($calendarIds !== null) {
+            $query->whereIn('calendar_id', $calendarIds);
         }
 
         $appointments = $query->orderBy('start_at')
@@ -167,13 +167,13 @@ class CalendarService
      * Get agenda for a specific day with "Stack & Gap" logic.
      * Returns a mixed collection of Events and Gaps.
      */
-    public function getDayAgenda(Carbon $date, int $companyId, ?int $calendarId = null): Collection
+    public function getDayAgenda(Carbon $date, int $companyId, ?array $calendarIds = null): Collection
     {
         $query = Appointment::where('company_id', $companyId)
             ->whereDate('start_at', $date->toDateString());
 
-        if ($calendarId !== null) {
-            $query->where('calendar_id', $calendarId);
+        if ($calendarIds !== null) {
+            $query->whereIn('calendar_id', $calendarIds);
         }
 
         // 1. Fetch & Sort
@@ -230,7 +230,7 @@ class CalendarService
     /**
      * Get appointments for a specific month (grouped by date)
      */
-    public function getAppointmentsForMonth(Carbon $date, int $companyId, ?int $calendarId = null): array
+    public function getAppointmentsForMonth(Carbon $date, int $companyId, ?array $calendarIds = null): array
     {
         $startOfMonth = $date->copy()->startOfMonth()->startOfWeek(Carbon::MONDAY);
         $endOfMonth = $date->copy()->endOfMonth()->endOfWeek(Carbon::SUNDAY)->endOfDay();
@@ -238,8 +238,8 @@ class CalendarService
         $query = Appointment::where('company_id', $companyId)
             ->whereBetween('start_at', [$startOfMonth, $endOfMonth]);
 
-        if ($calendarId !== null) {
-            $query->where('calendar_id', $calendarId);
+        if ($calendarIds !== null) {
+            $query->whereIn('calendar_id', $calendarIds);
         }
 
         $appointments = $query->orderBy('start_at')->with('calendar')->get();

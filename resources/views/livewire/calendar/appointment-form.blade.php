@@ -217,108 +217,127 @@ new class extends Component {
     }
 }; ?>
 
-<flux:modal wire:model="showModal" class="max-w-2xl">
-    <div class="p-6 space-y-6">
-        <flux:heading size="lg">
-            {{ $appointment ? __('calendar.edit_event') : __('calendar.new_event') }}
-        </flux:heading>
+<div x-data="{ 
+    localOpen: false, 
+    init() {
+        // Wire model ile senkronize ol
+        this.$watch('$wire.showModal', value => {
+            this.localOpen = value;
+            if (value) {
+                // Açılırken hemen bildir
+                this.$dispatch('modal-toggled', { isOpen: true });
+            } else {
+                // Kapanırken gecikmeli bildir (ESC çakışmasını önlemek için)
+                setTimeout(() => this.$dispatch('modal-toggled', { isOpen: false }), 200);
+            }
+        });
+    }
+}"
+@keydown.window.escape="if($wire.showModal) $wire.set('showModal', false)">
+    <flux:modal wire:model="showModal" class="max-w-2xl">
+            <div class="p-6 space-y-6">
+                <flux:heading size="lg">
+                    {{ $appointment ? __('calendar.edit_event') : __('calendar.new_event') }}
+                </flux:heading>
 
-        <form wire:submit="save" class="space-y-4">
-            {{-- Takvim Seçimi --}}
-            <flux:select wire:model="calendar_id" label="{{ __('calendar.calendar') }}" required>
-                <option value="">{{ __('calendar.select_calendar') }}</option>
-                @foreach($calendars as $calendar)
-                    <option value="{{ $calendar->id }}">{{ $calendar->name }}</option>
-                @endforeach
-            </flux:select>
+                <form wire:submit="save" class="space-y-4">
+                    {{-- Takvim Seçimi --}}
+                    <flux:select wire:model="calendar_id" label="{{ __('calendar.calendar') }}" required>
+                        <option value="">{{ __('calendar.select_calendar') }}</option>
+                        @foreach($calendars as $calendar)
+                            <option value="{{ $calendar->id }}">{{ $calendar->name }}</option>
+                        @endforeach
+                    </flux:select>
 
-            {{-- Başlık --}}
-            <flux:input wire:model.blur="title" label="{{ __('calendar.event_title') }}"
-                placeholder="{{ __('calendar.event_title_placeholder') }}" required />
+                    {{-- Başlık --}}
+                    <flux:input wire:model.blur="title" label="{{ __('calendar.event_title') }}"
+                        placeholder="{{ __('calendar.event_title_placeholder') }}" required />
 
-            {{-- Tür --}}
-            <flux:select wire:model="type" label="{{ __('calendar.event_type') }}" required>
-                @foreach(\App\Enums\AppointmentType::cases() as $t)
-                    <option value="{{ $t->value }}">{{ $t->label() }}</option>
-                @endforeach
-            </flux:select>
+                    {{-- Tür --}}
+                    <flux:select wire:model="type" label="{{ __('calendar.event_type') }}" required>
+                        @foreach(\App\Enums\AppointmentType::cases() as $t)
+                            <option value="{{ $t->value }}">{{ $t->label() }}</option>
+                        @endforeach
+                    </flux:select>
 
-            {{-- Tarih/Saat --}}
-            <div class="grid grid-cols-2 gap-4">
-                <flux:input type="datetime-local" wire:model.blur="start_at" label="{{ __('calendar.start') }}"
-                    required />
-                <flux:input type="datetime-local" wire:model.blur="end_at" label="{{ __('calendar.end') }}" required />
-            </div>
+                    {{-- Tarih/Saat --}}
+                    <div class="grid grid-cols-2 gap-4">
+                        <flux:input type="datetime-local" wire:model.blur="start_at" label="{{ __('calendar.start') }}"
+                            required />
+                        <flux:input type="datetime-local" wire:model.blur="end_at" label="{{ __('calendar.end') }}"
+                            required />
+                    </div>
 
-            {{-- Tüm gün --}}
-            <flux:checkbox wire:model.live="all_day" label="{{ __('calendar.all_day') }}" />
+                    {{-- Tüm gün --}}
+                    <flux:checkbox wire:model.live="all_day" label="{{ __('calendar.all_day') }}" />
 
-            {{-- Konum --}}
-            <flux:input wire:model.blur="location" label="{{ __('calendar.location') }}"
-                placeholder="{{ __('calendar.location_placeholder') }}" />
+                    {{-- Konum --}}
+                    <flux:input wire:model.blur="location" label="{{ __('calendar.location') }}"
+                        placeholder="{{ __('calendar.location_placeholder') }}" />
 
-            {{-- Katılımcılar --}}
-            <div>
-                <label class="block text-sm font-medium mb-2">{{ __('calendar.attendees') }}</label>
+                    {{-- Katılımcılar --}}
+                    <div>
+                        <label class="block text-sm font-medium mb-2">{{ __('calendar.attendees') }}</label>
 
-                {{-- Selected Users (Chips) --}}
-                <div class="flex flex-wrap gap-2 mb-2">
-                    @foreach($this->selectedUsers as $user)
-                        <flux:badge size="sm" class="gap-1 pr-1">
-                            {{ $user->name }}
-                            <div wire:click="removeAttendee({{ $user->id }})" class="cursor-pointer hover:text-red-500">
-                                <flux:icon name="x-mark" size="xs" />
-                            </div>
-                        </flux:badge>
-                    @endforeach
-                </div>
-
-                {{-- Search Input --}}
-                <div class="relative">
-                    <flux:input wire:model.live.debounce.300ms="searchQuery" icon="magnifying-glass"
-                        placeholder="{{ __('calendar.search_attendees') }}" autocomplete="off" />
-
-                    {{-- Search Results Dropdown --}}
-                    @if(!empty($this->searchQuery) && count($this->searchUsers) > 0)
-                        <div
-                            class="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 max-h-48 overflow-y-auto">
-                            @foreach($this->searchUsers as $user)
-                                <div wire:click="addAttendee({{ $user->id }})"
-                                    class="flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
-                                    <flux:avatar size="xs" :name="$user->name" />
-                                    <div class="flex-1 min-w-0">
-                                        <div class="text-sm font-medium truncate">{{ $user->name }}</div>
-                                        <div class="text-xs text-zinc-500 truncate">{{ $user->email }}</div>
+                        {{-- Selected Users (Chips) --}}
+                        <div class="flex flex-wrap gap-2 mb-2">
+                            @foreach($this->selectedUsers as $user)
+                                <flux:badge size="sm" class="gap-1 pr-1">
+                                    {{ $user->name }}
+                                    <div wire:click="removeAttendee({{ $user->id }})"
+                                        class="cursor-pointer hover:text-red-500">
+                                        <flux:icon name="x-mark" size="xs" />
                                     </div>
-                                    <flux:icon name="plus" size="xs" class="text-zinc-400" />
-                                </div>
+                                </flux:badge>
                             @endforeach
                         </div>
-                    @endif
-                </div>
-                <flux:error name="attendee_user_ids" />
+
+                        {{-- Search Input --}}
+                        <div class="relative">
+                            <flux:input wire:model.live.debounce.300ms="searchQuery" icon="magnifying-glass"
+                                placeholder="{{ __('calendar.search_attendees') }}" autocomplete="off" />
+
+                            {{-- Search Results Dropdown --}}
+                            @if(!empty($this->searchQuery) && count($this->searchUsers) > 0)
+                                <div
+                                    class="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 max-h-48 overflow-y-auto">
+                                    @foreach($this->searchUsers as $user)
+                                        <div wire:click="addAttendee({{ $user->id }})"
+                                            class="flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
+                                            <flux:avatar size="xs" :name="$user->name" />
+                                            <div class="flex-1 min-w-0">
+                                                <div class="text-sm font-medium truncate">{{ $user->name }}</div>
+                                                <div class="text-xs text-zinc-500 truncate">{{ $user->email }}</div>
+                                            </div>
+                                            <flux:icon name="plus" size="xs" class="text-zinc-400" />
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                        <flux:error name="attendee_user_ids" />
+                    </div>
+
+                    {{-- Açıklama --}}
+                    <flux:textarea wire:model.blur="description" label="{{ __('calendar.description') }}" rows="3" />
+
+                    {{-- Butonlar --}}
+                    <div class="flex justify-end gap-2 pt-4">
+                        <flux:button variant="ghost" type="button" wire:click="$set('showModal', false)">
+                            {{ __('common.cancel') }}
+                        </flux:button>
+
+                        @if($appointment)
+                            <flux:button variant="danger" type="button" wire:click="delete"
+                                wire:confirm="{{ __('calendar.delete_confirmation', ['title' => $appointment->title]) }}">
+                                {{ __('common.delete') }}
+                            </flux:button>
+                        @endif
+                        <flux:button type="submit" variant="primary">
+                            {{ $appointment ? __('common.update') : __('common.create') }}
+                        </flux:button>
+                    </div>
+                </form>
             </div>
-
-            {{-- Açıklama --}}
-            <flux:textarea wire:model.blur="description" label="{{ __('calendar.description') }}" rows="3" />
-
-            {{-- Butonlar --}}
-            <div class="flex justify-end gap-2 pt-4">
-                <flux:button variant="ghost" type="button" wire:click="$set('showModal', false)">
-                    {{ __('common.cancel') }}
-                </flux:button>
-
-                @if($appointment)
-                    <flux:button variant="danger" type="button"
-                        wire:click="delete"
-                        wire:confirm="{{ __('calendar.delete_confirmation', ['title' => $appointment->title]) }}">
-                        {{ __('common.delete') }}
-                    </flux:button>
-                @endif
-                <flux:button type="submit" variant="primary">
-                    {{ $appointment ? __('common.update') : __('common.create') }}
-                </flux:button>
-            </div>
-        </form>
-    </div>
-</flux:modal>
+        </flux:modal>
+</div>

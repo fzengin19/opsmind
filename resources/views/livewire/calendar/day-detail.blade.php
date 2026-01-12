@@ -55,17 +55,12 @@ new class extends Component {
     }
 }; ?>
 
-<div x-data="{ show: @entangle('isOpen') }" 
-    x-show="show" 
-    x-transition:enter="transition ease-out duration-200"
-    x-transition:enter-start="opacity-0 scale-95" 
-    x-transition:enter-end="opacity-100 scale-100"
-    x-transition:leave="transition ease-in duration-100" 
-    x-transition:leave-start="opacity-100 scale-100"
-    x-transition:leave-end="opacity-0 scale-95" 
-    wire:keydown.window.escape="close"
-    class="absolute inset-0 z-20 bg-white dark:bg-zinc-800 flex flex-col"
-    style="display: none;" {{-- Start hidden --}}>
+<div x-data="{ show: @entangle('isOpen'), modalOpen: false }" x-show="show"
+    @modal-toggled.window="modalOpen = $event.detail.isOpen" x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-95" @keydown.window.escape="if (!modalOpen) $wire.close()"
+    class="absolute inset-0 z-20 bg-white dark:bg-zinc-800 flex flex-col" style="display: none;" {{-- Start hidden --}}>
     {{-- Sticky Header --}}
     <div
         class="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-700 bg-white/95 dark:bg-zinc-800/95 backdrop-blur-sm sticky top-0 z-10">
@@ -109,7 +104,7 @@ new class extends Component {
                         @php $event = $item['data']; @endphp
                         <div wire:key="agenda-event-{{ $event->id }}"
                             wire:click="$dispatch('open-appointment-form', { appointmentId: {{ $event->id }} })" class="relative group p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:shadow-md transition cursor-pointer flex flex-col gap-1
-                                                    @if($event->calendar?->color) border-l-4 @endif"
+                                                                            @if($event->calendar?->color) border-l-4 @endif"
                             style="@if($event->calendar?->color) border-left-color: {{ $event->calendar->color }}; @endif">
                             <div class="flex justify-between items-start">
                                 <span class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-1">
@@ -137,8 +132,8 @@ new class extends Component {
                         <div wire:key="agenda-gap-{{ $item['start']->timestamp }}"
                             wire:click="$dispatch('open-appointment-form', { prefillDate: '{{ $date }}', start_time: '{{ $item['start']->format('H:i') }}' })"
                             class="p-3 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50/50 dark:bg-zinc-900/30 
-                                                                       hover:bg-primary-50 dark:hover:bg-primary-900/10 hover:border-primary-300 dark:hover:border-primary-700 
-                                                                       transition cursor-pointer flex items-center justify-center min-h-[80px] group">
+                                                                                               hover:bg-primary-50 dark:hover:bg-primary-900/10 hover:border-primary-300 dark:hover:border-primary-700 
+                                                                                               transition cursor-pointer flex items-center justify-center min-h-[80px] group">
                             <div class="text-center group-hover:scale-105 transition">
                                 <div
                                     class="text-xs font-medium text-zinc-500 dark:text-zinc-400 group-hover:text-primary-600 dark:group-hover:text-primary-400">

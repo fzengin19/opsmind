@@ -29,7 +29,7 @@ test('admin can view roles page', function () {
     $this->actingAs($this->admin)
         ->get(route('settings.roles.index'))
         ->assertOk()
-        ->assertSee(__('Roles & Permissions'));
+        ->assertSee(__('settings.roles.title'));
 });
 
 test('member cannot view roles page', function () {

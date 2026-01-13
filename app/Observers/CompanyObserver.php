@@ -13,7 +13,7 @@ class CompanyObserver
     public function created(Company $company): void
     {
         $company->calendars()->create([
-            'name' => __('calendar.default_calendar_name'),
+            'name' => $company->name . ' ' . __('calendar.title'),
             'type' => CalendarType::Default->value,
             'visibility' => CalendarVisibility::CompanyWide->value,
             'is_default' => true,

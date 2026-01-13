@@ -39,7 +39,6 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->date = now()->toDateString();
         }
 
-        // Başlangıçta tüm erişilebilir takvimler görünür
         $this->visibleCalendarIds = $this->accessibleCalendars->pluck('id')->toArray();
     }
 
@@ -185,17 +184,24 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         {{-- Right: View Switcher + New Appointment Button --}}
         <div class="flex items-center gap-3">
-                <flux:button variant="primary" size="sm" class="cursor-default">
-                    {{ __('calendar.month') }}
-                </flux:button>
-                <!--
-                <flux:button :variant="$view === 'week' ? 'primary' : 'ghost'" size="sm" wire:click="setView('week')">
-                    {{ __('calendar.week') }}
-                </flux:button>
-                <flux:button :variant="$view === 'day' ? 'primary' : 'ghost'" size="sm" wire:click="setView('day')">
-                    {{ __('calendar.day') }}
-                </flux:button>
-                -->
+            <flux:dropdown>
+                <flux:button icon="funnel" variant="ghost" size="sm">{{ __('calendar.select_calendar') }}</flux:button>
+                <flux:menu class="max-h-[300px] overflow-y-auto w-64">
+                    @foreach($this->accessibleCalendars as $calendar)
+                        <flux:menu.item wire:click="toggleCalendar({{ $calendar->id }})">
+                            <div class="flex items-center gap-2">
+                                <span class="size-2 rounded-full flex-shrink-0" style="background-color: {{ $calendar->color }}"></span>
+                                <span class="flex-1 truncate {{ in_array($calendar->id, $visibleCalendarIds) ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-500' }}">
+                                    {{ $calendar->name }}
+                                </span>
+                                @if(in_array($calendar->id, $visibleCalendarIds))
+                                    <flux:icon name="check" class="size-4 text-primary-600" />
+                                @endif
+                            </div>
+                        </flux:menu.item>
+                    @endforeach
+                </flux:menu>
+            </flux:dropdown>
 
             <flux:button variant="primary" icon="plus" wire:click="openNewAppointment">
                 {{ __('calendar.new_event') }}
@@ -205,33 +211,10 @@ new #[Layout('components.layouts.app')] class extends Component {
     </div>
 
 
-    <div class="flex flex-col lg:flex-row gap-6">
-
-        {{-- Sidebar --}}
-        <div class="w-full lg:w-64 flex-shrink-0 space-y-6">
-            <div class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-4 shadow-sm">
-                <flux:heading size="sm" class="mb-3">{{ __('calendar.my_calendars') }}</flux:heading>
-                <div class="space-y-2">
-                    @foreach($this->accessibleCalendars as $calendar)
-                        <label class="flex items-center gap-2 cursor-pointer group select-none">
-                            <input
-                                type="checkbox"
-                                wire:click="toggleCalendar({{ $calendar->id }})"
-                                @checked(in_array($calendar->id, $visibleCalendarIds))
-                                class="rounded border-zinc-300 text-primary-600 shadow-sm focus:ring-primary-500 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:ring-primary-600"
-                            >
-                            <span class="size-3 rounded-full flex-shrink-0" style="background-color: {{ $calendar->color }}"></span>
-                            <span class="text-sm text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition truncate">
-                                {{ $calendar->name }}
-                            </span>
-                        </label>
-                    @endforeach
-                </div>
-            </div>
-        </div>
+    <div class="flex flex-col gap-6">
 
         {{-- Calendar Grid Container --}}
-        <div class="flex-1 min-w-0 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm overflow-hidden relative">
+        <div class="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm overflow-hidden relative">
 
         @if($view === 'month')
             {{-- Day Headers --}}

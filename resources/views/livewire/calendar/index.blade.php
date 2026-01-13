@@ -147,11 +147,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->dispatch('confirm-delete-appointment', appointmentId: $appointmentId);
     }
 
-    public function selectDay(string $date): void
-    {
-        $this->dispatch('open-day-detail', date: $date);
-    }
-
     #[On('calendar-refresh')]
     public function refreshCalendar(): void
     {
@@ -277,9 +272,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                             $dayEvents = $monthEvents[$dateKey] ?? [];
                         @endphp
 
-                        {{-- Day Click Area (Entire Cell) - BACKEND DISPATCH for safety --}}
+                        {{-- Day Click Area (Entire Cell) - FRONTEND DISPATCH for speed --}}
                         <div 
-                            wire:click="selectDay('{{ $day['date']->toDateString() }}')"
+                            wire:click="$dispatch('open-day-detail', { date: '{{ $day['date']->toDateString() }}' })"
                             class="absolute inset-0 z-0 cursor-pointer"
                         ></div>
 

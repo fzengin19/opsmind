@@ -304,7 +304,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         
                                         $style = '';
                                         // Base classes
-                                        $classes = 'text-[10px] truncate px-1 py-0.5 transition cursor-pointer ';
+                                        $classes = 'text-[10px] truncate px-1 py-0.5 transition cursor-pointer pointer-events-auto hover:opacity-75 ';
                                         
                                         // Position Logic (Margins & Radius)
                                         // Parent has p-1 (4px) on mobile, sm:p-2 (8px) on desktop.
@@ -356,6 +356,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     @endphp
                                     
                                     <div wire:key="event-{{ $event['id'] }}-{{ $day['date']->timestamp }}" 
+                                         wire:click.stop="$dispatch('open-appointment-form', { appointmentId: {{ $event['id'] }} })"
                                          class="{{ $classes }}"
                                          style="{{ $style }}">
                                         {{ $event['title'] }}

@@ -170,8 +170,14 @@ class CalendarService
      */
     public function getDayAgenda(Carbon $date, int $companyId, ?array $calendarIds = null): Collection
     {
+        $dayStart = $date->copy()->startOfDay();
+        $dayEnd = $date->copy()->endOfDay();
+
         $query = Appointment::where('company_id', $companyId)
-            ->whereDate('start_at', $date->toDateString());
+            ->where(function ($q) use ($dayStart, $dayEnd) {
+                $q->where('start_at', '<=', $dayEnd)
+                  ->where('end_at', '>=', $dayStart);
+            });
 
         if ($calendarIds !== null) {
             $query->whereIn('calendar_id', $calendarIds);

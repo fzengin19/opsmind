@@ -71,4 +71,36 @@ class CalendarMultiDayTest extends TestCase
         $day = $events['2024-01-05'][0];
         $this->assertEquals('single', $day['position']);
     }
+
+    public function test_get_day_agenda_includes_spanning_events()
+    {
+        $company = Company::factory()->create();
+        $calendar = Calendar::factory()->create(['company_id' => $company->id]);
+        $user = User::factory()->create();
+        $company->users()->attach($user);
+
+        // Create 3-day event (14th - 16th)
+        $start = Carbon::parse('2024-01-14 00:00:00');
+        $end = Carbon::parse('2024-01-16 23:59:59');
+
+        $appointment = Appointment::factory()->create([
+            'company_id' => $company->id,
+            'calendar_id' => $calendar->id,
+            'start_at' => $start,
+            'end_at' => $end,
+            'all_day' => true,
+        ]);
+
+        $service = app(CalendarService::class);
+
+        // Test Middle Day (15th) using getDayAgenda
+        $agenda = $service->getDayAgenda(Carbon::parse('2024-01-15'), $company->id, [$calendar->id]);
+
+        // It should contain the event
+        $found = $agenda->where('type', 'event')->first(function ($item) use ($appointment) {
+            return $item['data']->id === $appointment->id;
+        });
+
+        $this->assertNotNull($found, 'Event spanning multiple days should appear on middle day agenda');
+    }
 }

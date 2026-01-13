@@ -77,10 +77,10 @@ new class extends Component {
             </flux:button>
             <div>
                 <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                    {{ $this->currentDate?->locale('tr')->translatedFormat('d F Y') }}
+                    {{ $this->currentDate?->translatedFormat('d F Y') }}
                 </h3>
                 <p class="text-xs text-zinc-500 dark:text-zinc-400">
-                    {{ $this->currentDate?->locale('tr')->translatedFormat('l') }}
+                    {{ $this->currentDate?->translatedFormat('l') }}
                 </p>
             </div>
         </div>

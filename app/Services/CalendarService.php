@@ -30,7 +30,7 @@ class CalendarService
                 'date' => $current->copy(),
                 'isCurrentMonth' => $current->month === $date->month,
                 'isToday' => $current->isToday(),
-                'dayName' => $current->locale('tr')->dayName, // or shortDayName
+                'dayName' => $current->dayName, // or shortDayName
                 'day' => $current->day,
             ];
             $current->addDay();
@@ -52,7 +52,7 @@ class CalendarService
             $days[] = [
                 'date' => $day,
                 'isToday' => $day->isToday(),
-                'dayName' => $day->locale('tr')->isoFormat('ddd'), // Pzt, Sal
+                'dayName' => $day->isoFormat('ddd'), // Pzt, Sal
                 'day' => $day->day,
             ];
         }

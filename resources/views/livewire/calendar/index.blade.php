@@ -171,12 +171,12 @@ new #[Layout('components.layouts.app')] class extends Component {
             {{-- Dynamic Title --}}
             <flux:heading size="xl">
                 @if($view === 'month')
-                    {{ $this->getCurrentDate()->locale('tr')->translatedFormat('F Y') }}
+                    {{ $this->getCurrentDate()->translatedFormat('F Y') }}
                 @elseif($view === 'week')
                     {{ $this->getCurrentDate()->copy()->startOfWeek()->translatedFormat('d') }} -
                     {{ $this->getCurrentDate()->copy()->endOfWeek()->translatedFormat('d M Y') }}
                 @else
-                    {{ $this->getCurrentDate()->locale('tr')->translatedFormat('d F Y') }}
+                    {{ $this->getCurrentDate()->translatedFormat('d F Y') }}
                 @endif
             </flux:heading>
 
@@ -241,10 +241,13 @@ new #[Layout('components.layouts.app')] class extends Component {
         @if($view === 'month')
             {{-- Day Headers --}}
             <div class="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50">
-                @foreach(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as $dayKey)
+                @php
+                    $startOfWeek = now()->startOfWeek();
+                @endphp
+                @foreach(range(0, 6) as $index)
                     <div
                         class="py-2 sm:py-3 text-center text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                        {{ __('calendar.days_short.' . $dayKey) }}
+                        {{ $startOfWeek->copy()->addDays($index)->translatedFormat('D') }}
                     </div>
                 @endforeach
             </div>
@@ -465,13 +468,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                     {{-- Single Day Header --}}
                     <div class="flex-1 py-3 sm:py-4 text-center bg-zinc-50 dark:bg-zinc-900">
                         <div class="text-sm text-zinc-500 dark:text-zinc-400">
-                            {{ $this->getCurrentDate()->locale('tr')->translatedFormat('l') }}
+                            {{ $this->getCurrentDate()->translatedFormat('l') }}
                         </div>
                         <div class="text-2xl sm:text-3xl font-bold {{ $this->getCurrentDate()->isToday() ? 'text-primary-600 dark:text-primary-400' : 'text-zinc-900 dark:text-zinc-100' }}">
                             {{ $this->getCurrentDate()->day }}
                         </div>
                         <div class="text-xs text-zinc-400 dark:text-zinc-500">
-                            {{ $this->getCurrentDate()->locale('tr')->translatedFormat('F Y') }}
+                            {{ $this->getCurrentDate()->translatedFormat('F Y') }}
                         </div>
                     </div>
                 </div>

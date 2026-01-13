@@ -154,7 +154,11 @@ new class extends Component {
 
                             <div class="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2 mt-1">
                                 <flux:icon name="clock" class="size-3" />
-                                {{ $event->start_at->format('H:i') }} - {{ $event->end_at->format('H:i') }}
+                                @if($event->all_day)
+                                    {{ __('calendar.all_day') }}
+                                @else
+                                    {{ $event->start_at->format('H:i') }} - {{ $event->end_at->format('H:i') }}
+                                @endif
                             </div>
 
                             @if($event->location)

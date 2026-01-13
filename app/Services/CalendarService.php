@@ -106,6 +106,7 @@ class CalendarService
                     'color' => $apt->calendar?->color ?? $apt->type->color(),
                     'type' => $apt->type->value,
                     'calendarId' => $apt->calendar_id,
+                    'isAllDay' => $apt->all_day,
                     // Default values, will be recalculated for overlaps
                     'width' => 100,
                     'left' => 0,
@@ -235,28 +236,66 @@ class CalendarService
         $startOfMonth = $date->copy()->startOfMonth()->startOfWeek(Carbon::MONDAY);
         $endOfMonth = $date->copy()->endOfMonth()->endOfWeek(Carbon::SUNDAY)->endOfDay();
 
+        // 1. Fetch all events overlapping the month window
         $query = Appointment::where('company_id', $companyId)
-            ->whereBetween('start_at', [$startOfMonth, $endOfMonth]);
+            ->where(function ($q) use ($startOfMonth, $endOfMonth) {
+                // Overlap: (Event Start <= Window End) AND (Event End >= Window Start)
+                $q->where('start_at', '<=', $endOfMonth)
+                  ->where('end_at', '>=', $startOfMonth);
+            });
 
         if ($calendarIds !== null) {
             $query->whereIn('calendar_id', $calendarIds);
         }
 
-        $appointments = $query->orderBy('start_at')->with('calendar')->get();
+        $appointments = $query->orderBy('start_at')
+            ->orderBy('all_day', 'desc') // Put all-day events first
+            ->with('calendar')
+            ->get();
 
         $grouped = [];
+
         foreach ($appointments as $apt) {
-            $dateKey = $apt->start_at->toDateString(); // Y-m-d
-            if (! isset($grouped[$dateKey])) {
-                $grouped[$dateKey] = [];
+            // Determine effective range within the grid
+            $effectiveStart = $apt->start_at->max($startOfMonth);
+            $effectiveEnd = $apt->end_at->min($endOfMonth);
+            
+            // Iterate through every day of the event
+            $current = $effectiveStart->copy()->startOfDay();
+            $lastDay = $effectiveEnd->copy()->startOfDay(); // Comparison target based on date only
+
+            // Loop until we pass the last day of the event (or the grid)
+            while ($current->lte($lastDay)) {
+                $dateKey = $current->toDateString();
+
+                if (! isset($grouped[$dateKey])) {
+                    $grouped[$dateKey] = [];
+                }
+
+                // Determine Position Metadata
+                $isStartDay = $current->isSameDay($apt->start_at);
+                $isEndDay = $current->isSameDay($apt->end_at);
+                $isSingleDay = $isStartDay && $isEndDay;
+
+                $position = 'single';
+                if (!$isSingleDay) {
+                    if ($isStartDay) $position = 'start';
+                    elseif ($isEndDay) $position = 'end';
+                    else $position = 'middle';
+                }
+
+                $grouped[$dateKey][] = [
+                    'id' => $apt->id,
+                    'title' => $apt->title,
+                    'time' => $apt->start_at->format('H:i'),
+                    'color' => $apt->calendar?->color ?? $apt->type->color(),
+                    'calendarId' => $apt->calendar_id,
+                    'isAllDay' => $apt->all_day,
+                    'position' => $position, // 'single', 'start', 'end', 'middle'
+                ];
+
+                $current->addDay();
             }
-            $grouped[$dateKey][] = [
-                'id' => $apt->id,
-                'title' => $apt->title,
-                'time' => $apt->start_at->format('H:i'),
-                'color' => $apt->calendar?->color ?? $apt->type->color(),
-                'calendarId' => $apt->calendar_id,
-            ];
         }
 
         return $grouped;

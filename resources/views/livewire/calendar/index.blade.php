@@ -286,6 +286,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     @php
                                         $color = $event['color'] ?? 'primary';
                                         $isHex = str_starts_with($color, '#');
+                                        $isAllDay = $event['isAllDay'] ?? false;
+                                        $position = $event['position'] ?? 'single';
                                         
                                         // Semantic classes lookup
                                         $semanticClasses = match ($color) {
@@ -298,18 +300,59 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         };
                                         
                                         $style = '';
-                                        $classes = 'text-[10px] truncate px-1 py-0.5 rounded cursor-pointer transition ';
+                                        // Base classes
+                                        $classes = 'text-[10px] truncate px-1 py-0.5 transition cursor-pointer ';
+                                        
+                                        // Position Logic (Margins & Radius)
+                                        // Parent has p-1 (4px) on mobile, sm:p-2 (8px) on desktop.
+                                        // We need negative margins to pull the bar to the edge.
+                                        switch ($position) {
+                                            case 'start':
+                                                // Left side normal (rounded), Right side pulls to edge
+                                                $classes .= 'rounded-l-md rounded-r-none -mr-1 sm:-mr-2 pl-1 pr-2 ';
+                                                break;
+                                            case 'middle':
+                                                // Both sides pull to edge
+                                                $classes .= 'rounded-none -mx-1 sm:-mx-2 px-2 ';
+                                                break;
+                                            case 'end':
+                                                // Left side pulls to edge, Right side normal
+                                                $classes .= 'rounded-l-none rounded-r-md -ml-1 sm:-ml-2 pl-2 pr-1 ';
+                                                break;
+                                            case 'single':
+                                            default:
+                                                $classes .= 'rounded-md mx-0 mb-0.5 '; // Keep standard
+                                                break;
+                                        }
+
                                         
                                         if ($isHex) {
-                                            // Dynamic Hex Style
-                                            $style = "background-color: {$color}20; color: {$color}; border-left: 2px solid {$color}; padding-left: 4px;";
-                                            $classes .= 'bg-opacity-20';
+                                            if ($isAllDay) {
+                                                 // Solid background for All Day
+                                                 $style = "background-color: {$color}; color: white; border: 1px solid transparent;"; 
+                                            } else {
+                                                 // Dynamic Hex Style (Light)
+                                                 $style = "background-color: {$color}20; color: {$color}; border-left: 2px solid {$color}; padding-left: 4px;";
+                                                 $classes .= 'bg-opacity-20';
+                                            }
                                         } else {
-                                            $classes .= $semanticClasses;
+                                            if ($isAllDay) {
+                                                $solidClasses = match ($color) {
+                                                    'primary' => 'bg-primary-600 text-white',
+                                                    'success' => 'bg-emerald-600 text-white',
+                                                    'warning' => 'bg-amber-500 text-white',
+                                                    'danger' => 'bg-rose-600 text-white',
+                                                    'zinc' => 'bg-zinc-600 text-white',
+                                                    default => 'bg-zinc-600 text-white',
+                                                };
+                                                $classes .= $solidClasses;
+                                            } else {
+                                                $classes .= $semanticClasses;
+                                            }
                                         }
                                     @endphp
                                     
-                                    <div wire:key="event-{{ $event['id'] }}" 
+                                    <div wire:key="event-{{ $event['id'] }}-{{ $day['date']->timestamp }}" 
                                          class="{{ $classes }}"
                                          style="{{ $style }}">
                                         {{ $event['title'] }}

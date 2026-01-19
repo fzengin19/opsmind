@@ -59,7 +59,7 @@ new class extends Component {
             $this->appointment = Appointment::with('attendees')->findOrFail($appointmentId);
             $this->fill([
                 'calendar_id' => $this->appointment->calendar_id,
-                'all_day' => (bool)$this->appointment->all_day,
+                'all_day' => (bool) $this->appointment->all_day,
                 'title' => $this->appointment->title,
                 'type' => $this->appointment->type->value,
                 'start_at' => $this->appointment->start_at->format($this->appointment->all_day ? 'Y-m-d' : 'Y-m-d\TH:i'),
@@ -217,23 +217,9 @@ new class extends Component {
     }
 }; ?>
 
-<div x-data="{ 
-    localOpen: false, 
-    init() {
-        // Wire model ile senkronize ol
-        this.$watch('$wire.showModal', value => {
-            this.localOpen = value;
-            if (value) {
-                // Açılırken hemen bildir
-                this.$dispatch('modal-toggled', { isOpen: true });
-            } else {
-                // Kapanırken gecikmeli bildir (ESC çakışmasını önlemek için)
-                setTimeout(() => this.$dispatch('modal-toggled', { isOpen: false }), 200);
-            }
-        });
-    }
-}" @keydown.window.escape="if($wire.showModal) $wire.set('showModal', false)">
-    <flux:modal wire:model="showModal" class="max-w-2xl">
+<div>
+    <flux:modal wire:model="showModal" class="max-w-2xl"
+        x-on:keydown.escape.window="if ($wire.showModal) $wire.set('showModal', false)">
         <div class="p-6 space-y-6">
             <flux:heading size="lg">
                 {{ $appointment ? __('calendar.edit_event') : __('calendar.new_event') }}
@@ -262,13 +248,15 @@ new class extends Component {
                 {{-- Tarih/Saat --}}
                 <div class="grid grid-cols-2 gap-4">
                     @if($all_day)
-                        <flux:input wire:key="date-start" type="date" wire:model.blur="start_at" label="{{ __('calendar.start') }}" required />
-                        <flux:input wire:key="date-end" type="date" wire:model.blur="end_at" label="{{ __('calendar.end') }}" required />
+                        <flux:input wire:key="date-start" type="date" wire:model.blur="start_at"
+                            label="{{ __('calendar.start') }}" required />
+                        <flux:input wire:key="date-end" type="date" wire:model.blur="end_at"
+                            label="{{ __('calendar.end') }}" required />
                     @else
-                        <flux:input wire:key="datetime-start" type="datetime-local" wire:model.blur="start_at" label="{{ __('calendar.start') }}"
-                            required />
-                        <flux:input wire:key="datetime-end" type="datetime-local" wire:model.blur="end_at" label="{{ __('calendar.end') }}"
-                            required />
+                        <flux:input wire:key="datetime-start" type="datetime-local" wire:model.blur="start_at"
+                            label="{{ __('calendar.start') }}" required />
+                        <flux:input wire:key="datetime-end" type="datetime-local" wire:model.blur="end_at"
+                            label="{{ __('calendar.end') }}" required />
                     @endif
                 </div>
 

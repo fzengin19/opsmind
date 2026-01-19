@@ -28,7 +28,8 @@ new class extends Component {
     }
 }; ?>
 
-<flux:modal wire:model="showModal" class="max-w-md">
+<flux:modal wire:model="showModal" class="max-w-md"
+    x-on:keydown.escape.window="if ($wire.showModal) $wire.set('showModal', false)">
     <div class="p-6">
         <flux:heading size="lg">{{ __('calendar.delete_appointment') }}</flux:heading>
 

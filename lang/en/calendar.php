@@ -34,4 +34,22 @@ return [
     'no_events_today' => 'No events for today.',
     'create_first_event' => 'Create first event',
     'free_time' => 'Free Time',
+
+    // Calendar Manager
+    'manage_calendars' => 'Manage Calendars',
+    'new_calendar' => 'New Calendar',
+    'edit_calendar' => 'Edit Calendar',
+    'calendar_name' => 'Calendar Name',
+    'calendar_name_placeholder' => 'e.g. Sales Team',
+    'calendar_color' => 'Color',
+    'calendar_type' => 'Type',
+    'calendar_visibility' => 'Visibility',
+    'default' => 'Default',
+    'no_calendars' => 'No calendars yet.',
+    'calendar_created' => 'Calendar created.',
+    'calendar_updated' => 'Calendar updated.',
+    'calendar_deleted' => 'Calendar deleted.',
+    'calendar_delete_confirm' => 'Calendar ":name" will be deleted. Appointments will be moved to default calendar. Are you sure?',
+    'cannot_delete_default' => 'Default calendar cannot be deleted.',
+    'cannot_delete_personal' => 'Personal calendar cannot be deleted.',
 ];

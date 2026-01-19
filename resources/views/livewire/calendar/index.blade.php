@@ -184,6 +184,16 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         {{-- Right: View Switcher + New Appointment Button --}}
         <div class="flex items-center gap-3">
+            {{-- Manage Calendars Button --}}
+            <flux:button
+                variant="ghost"
+                size="sm"
+                icon="cog-6-tooth"
+                wire:click="$dispatch('open-calendar-manager')"
+            >
+                <span class="sr-only">{{ __('calendar.manage_calendars') }}</span>
+            </flux:button>
+
             <flux:dropdown>
                 <flux:button icon="funnel" variant="ghost" size="sm">{{ __('calendar.select_calendar') }}</flux:button>
                 <flux:menu class="max-h-[300px] overflow-y-auto w-64">
@@ -539,5 +549,6 @@ new #[Layout('components.layouts.app')] class extends Component {
     {{-- Modals --}}
     <livewire:calendar.appointment-form :calendars="$this->accessibleCalendars" />
     <livewire:calendar.delete-confirmation />
+    <livewire:calendar.calendar-manager />
 
 </div>

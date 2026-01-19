@@ -62,11 +62,13 @@ new class extends Component {
     }
 }; ?>
 
-<div x-data="{ show: @entangle('isOpen'), modalOpen: false }" x-show="show"
-    @modal-toggled.window="modalOpen = $event.detail.isOpen" x-transition:enter="transition ease-out duration-200"
+<div x-data="{ show: @entangle('isOpen') }" 
+    x-show="show"
+    x-on:keydown.escape.window="if (show && !document.querySelector('dialog[open]')) $wire.close()"
+    x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
     x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100"
-    x-transition:leave-end="opacity-0 scale-95" @keydown.window.escape="if (!modalOpen) $wire.close()"
+    x-transition:leave-end="opacity-0 scale-95"
     class="absolute inset-0 z-20 bg-white dark:bg-zinc-800 flex flex-col" style="display: none;" {{-- Start hidden --}}>
     {{-- Sticky Header --}}
     <div

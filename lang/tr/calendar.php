@@ -33,4 +33,22 @@ return [
     'no_events_today' => 'Bugün için etkinlik bulunmuyor.',
     'create_first_event' => 'İlk etkinliği oluştur',
     'free_time' => 'Boş Zaman',
+
+    // Calendar Manager
+    'manage_calendars' => 'Takvimleri Yönet',
+    'new_calendar' => 'Yeni Takvim',
+    'edit_calendar' => 'Takvimi Düzenle',
+    'calendar_name' => 'Takvim Adı',
+    'calendar_name_placeholder' => 'Örn: Satış Ekibi',
+    'calendar_color' => 'Renk',
+    'calendar_type' => 'Tür',
+    'calendar_visibility' => 'Görünürlük',
+    'default' => 'Varsayılan',
+    'no_calendars' => 'Henüz takvim bulunmuyor.',
+    'calendar_created' => 'Takvim oluşturuldu.',
+    'calendar_updated' => 'Takvim güncellendi.',
+    'calendar_deleted' => 'Takvim silindi.',
+    'calendar_delete_confirm' => '":name" takvimi silinecek. Randevular varsayılan takvime taşınacak. Emin misiniz?',
+    'cannot_delete_default' => 'Varsayılan takvim silinemez.',
+    'cannot_delete_personal' => 'Kişisel takvim silinemez.',
 ];

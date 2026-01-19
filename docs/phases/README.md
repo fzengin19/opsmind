@@ -13,6 +13,7 @@ Bu klasör OpsMind MVP'nin 11 fazını detaylı olarak içerir.
 | 04 | [Calendar UI](04-calendar-ui.md) | 4 gün | ✅ |
 | 04.5 | [Calendar Entity](04.5-calendar-entity.md) | 1-2 gün | ✅ |
 | 05 | [Appointment CRUD](05-appointment-crud.md) | 3 gün | ⬜ |
+| 05.6 | [Calendar CRUD](05.6-calendar-crud.md) | 1-2 gün | 🟡 |
 | 06 | [Google Calendar Sync](06-google-calendar-sync.md) | 4 gün | ⬜ |
 | 07 | [Contact Management](07-contact-management.md) | 4 gün | ⬜ |
 | 08 | [Kanban Task Board](08-kanban-task-board.md) | 5 gün | ⬜ |

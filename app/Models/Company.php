@@ -100,6 +100,9 @@ class Company extends Model
         $calendarIds = $this->calendars()->pluck('id');
         $user->calendars()->detach($calendarIds);
 
+        // Delete ALL invitations for this user's email (including accepted ones)
+        $this->invitations()->where('email', $user->email)->delete();
+
         // Then detach from company pivot
         $this->users()->detach($user->id);
     }

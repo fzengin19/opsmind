@@ -1,3 +1,17 @@
+# Claude Code Commands & Guidelines
+
+- Build: npm run build
+- Lint: ./vendor/bin/pint
+- Test: php artisan test
+- Test Filter: php artisan test --filter {test_name}
+
+
+# Custom Commands
+- /refactor: Mevcut dosyadaki kodu SOLID prensiplerine göre parçala ve interface kullan.
+- /fix-ui: Flux UI bileşenlerini kontrol et, responsive olmayan yerleri düzelt.
+- /wtf: Son komut neden çalışmadı? Logları oku (browser-logs ve laravel.log) ve hatayı bul.
+
+
 <laravel-boost-guidelines>
 === foundation rules ===
 

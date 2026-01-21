@@ -63,6 +63,31 @@ describe('Company Model', function () {
         expect($company->fresh()->users)->toHaveCount(0);
     });
 
+    it('deletes invitations when removing user', function () {
+        $company = Company::factory()->create();
+        createDefaultRolesForCompany($company);
+        $user = User::factory()->create();
+
+        // Create an invitation for this user
+        \App\Models\Invitation::create([
+            'company_id' => $company->id,
+            'email' => $user->email,
+            'role_name' => 'member',
+            'token' => \App\Models\Invitation::generateToken(),
+            'expires_at' => now()->addHours(48),
+            'invited_by' => $user->id,
+            'accepted_at' => now(),
+        ]);
+
+        expect($company->invitations)->toHaveCount(1);
+
+        // Remove user should also delete invitations
+        $company->addUser($user, 'member');
+        $company->removeUser($user);
+
+        expect($company->fresh()->invitations)->toHaveCount(0);
+    });
+
     it('can get owners', function () {
         $company = Company::factory()->create();
         createDefaultRolesForCompany($company);

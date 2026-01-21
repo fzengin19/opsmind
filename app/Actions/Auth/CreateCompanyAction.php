@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Actions\Auth;
 
+use App\Enums\PermissionEnum;
 use App\Models\Company;
 use App\Models\User;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class CreateCompanyAction
@@ -50,7 +50,7 @@ class CreateCompanyAction
             'guard_name' => 'web',
             'company_id' => $company->id,
         ]);
-        $owner->givePermissionTo(Permission::all());
+        $owner->givePermissionTo(PermissionEnum::all());
 
         // Admin - All permissions
         $admin = Role::create([
@@ -58,22 +58,18 @@ class CreateCompanyAction
             'guard_name' => 'web',
             'company_id' => $company->id,
         ]);
-        $admin->givePermissionTo(Permission::all());
+        $admin->givePermissionTo(PermissionEnum::all());
 
         // Member - Basic permissions
+        $memberPermissions = array_map(
+            fn ($perm) => $perm->value,
+            PermissionEnum::memberPermissions()
+        );
         $member = Role::create([
             'name' => 'member',
             'guard_name' => 'web',
             'company_id' => $company->id,
         ]);
-        $member->givePermissionTo([
-            'contact.view',
-            'contact.create',
-            'appointment.view',
-            'appointment.create',
-            'task.view',
-            'task.create',
-            'task.update',
-        ]);
+        $member->givePermissionTo($memberPermissions);
     }
 }

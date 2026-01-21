@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\PermissionEnum;
 use Spatie\Permission\Models\Permission;
 
 class PermissionService
@@ -15,15 +16,17 @@ class PermissionService
      */
     public function getGroupedPermissions(): array
     {
-        $permissions = Permission::all();
+        $groups = PermissionEnum::grouped();
+        $permissions = Permission::all()
+            ->keyBy('name')
+            ->map(fn ($perm) => [
+                'name' => $perm->name,
+                'label' => __('permissions.'.$perm->name),
+            ]);
+
         $grouped = [];
 
-        foreach ($permissions as $permission) {
-            // Permission naming convention: group.action (e.g., user.create)
-            $parts = explode('.', $permission->name);
-            $groupKey = $parts[0] ?? 'other';
-
-            // Map group key to readable title
+        foreach ($groups as $groupKey => $enums) {
             $groupTitle = match ($groupKey) {
                 'company' => __('settings.roles.group_names.company'),
                 'user' => __('settings.roles.group_names.user'),
@@ -31,22 +34,18 @@ class PermissionService
                 'appointment' => __('settings.roles.group_names.appointment'),
                 'task' => __('settings.roles.group_names.task'),
                 'role' => __('settings.roles.group_names.role'),
-                default => ucfirst($groupKey),
             };
 
-            // Setup group if not exists
-            if (! isset($grouped[$groupTitle])) {
-                $grouped[$groupTitle] = [];
-            }
-
-            $grouped[$groupTitle][] = [
-                'id' => $permission->name,
-                'label' => __('permissions.'.$permission->name),
-            ];
+            $grouped[$groupTitle] = collect($enums)
+                ->map(fn ($enum) => $permissions->get($enum->value))
+                ->filter()
+                ->map(fn ($perm) => [
+                    'id' => $perm['name'],
+                    'label' => $perm['label'],
+                ])
+                ->values()
+                ->all();
         }
-
-        // Sort groups by key just to be consistent (optional)
-        ksort($grouped);
 
         return $grouped;
     }

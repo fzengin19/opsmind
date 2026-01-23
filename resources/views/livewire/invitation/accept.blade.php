@@ -81,6 +81,7 @@ new #[\Livewire\Attributes\Layout('components.layouts.auth.simple')] class exten
             Auth::login($user);
         }
 
+        // Action now handles session refresh internally
         $action->execute($this->invitation, $user);
 
         $this->redirect(route('dashboard'), navigate: true);

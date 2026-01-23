@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\CalendarType;
-use App\Enums\CalendarVisibility;
 use App\Observers\CompanyObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Calendar;
 
 #[ObservedBy([CompanyObserver::class])]
 class Company extends Model
@@ -60,25 +57,13 @@ class Company extends Model
      */
     public function addUser(User $user, string $roleName, ?int $departmentId = null, ?string $jobTitle = null): void
     {
-        $this->users()->attach($user->id, [
-            'department_id' => $departmentId,
-            'job_title' => $jobTitle,
-            'joined_at' => now(),
-        ]);
-
-        setPermissionsTeamId($this->id);
-        $user->assignRole($roleName);
-
-        // Kullanıcıya kişisel takvim oluştur
-        $calendar = $this->calendars()->create([
-            'name' => $user->name.' '.__('calendar.personal_calendar_suffix'),
-            'type' => CalendarType::Personal->value,
-            'visibility' => CalendarVisibility::Private->value,
-            'is_default' => false,
-            'color' => '#8b5cf6',
-        ]);
-
-        $calendar->users()->attach($user->id, ['role' => 'owner']);
+        app(\App\Actions\Users\AddUserToCompanyAction::class)->execute(
+            $this,
+            $user,
+            $roleName,
+            $departmentId,
+            $jobTitle
+        );
     }
 
     /**
@@ -86,25 +71,7 @@ class Company extends Model
      */
     public function removeUser(User $user): void
     {
-        // Remove Spatie roles first
-        setPermissionsTeamId($this->id);
-        $user->syncRoles([]);
-
-        // Delete user's personal calendar in this company
-        $this->calendars()
-            ->where('type', CalendarType::Personal->value)
-            ->whereHas('users', fn ($q) => $q->where('user_id', $user->id)->where('role', 'owner'))
-            ->delete();
-
-        // Detach user from all company calendars
-        $calendarIds = $this->calendars()->pluck('id');
-        $user->calendars()->detach($calendarIds);
-
-        // Delete ALL invitations for this user's email (including accepted ones)
-        $this->invitations()->where('email', $user->email)->delete();
-
-        // Then detach from company pivot
-        $this->users()->detach($user->id);
+        app(\App\Actions\Users\RemoveUserFromCompanyAction::class)->execute($this, $user);
     }
 
     // ==========================================
@@ -139,10 +106,6 @@ class Company extends Model
     {
         return $this->hasMany(Appointment::class);
     }
-
-
-
-
 
     public function invitations(): HasMany
     {
